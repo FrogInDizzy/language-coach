@@ -3,14 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import ProgressWidget, { ProgressData } from './ProgressWidget';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  userStats: {
-    streak: number;
-    xp: number;
-  };
+  progressData: ProgressData;
 }
 
 const navigationItems = [
@@ -20,7 +18,7 @@ const navigationItems = [
   { href: '/account', label: 'Settings', icon: '⚙️' },
 ];
 
-export default function Sidebar({ isOpen, onClose, userStats }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, progressData }: SidebarProps) {
   const pathname = usePathname();
 
   // Handle escape key press
@@ -76,22 +74,13 @@ export default function Sidebar({ isOpen, onClose, userStats }: SidebarProps) {
             </Link>
           </div>
 
-          {/* Stats */}
+          {/* Progress Widget */}
           <div className="p-6 border-b border-neutral-200">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
-                <span className="font-medium text-neutral-700 text-sm">
-                  {userStats.streak} day streak
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-primary-400 rounded-full"></div>
-                <span className="font-medium text-neutral-700 text-sm">
-                  {userStats.xp.toLocaleString()} XP
-                </span>
-              </div>
-            </div>
+            <ProgressWidget 
+              data={progressData}
+              variant="sidebar"
+              showDailyGoal={true}
+            />
           </div>
 
           {/* Navigation */}

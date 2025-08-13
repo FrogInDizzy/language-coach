@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import WeeklyFocus from '@/components/WeeklyFocus';
+import ProgressWidget, { ProgressSummary, ProgressData } from '@/components/ProgressWidget';
 import Link from 'next/link';
 
 interface TopMistake { category: string; count: number; }
@@ -41,6 +42,21 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Mock progress data - in real app, this would come from API
+  const progressData: ProgressData = {
+    currentXP: 1240,
+    currentLevel: 8,
+    xpForNextLevel: 950,
+    xpForCurrentLevel: 800,
+    streak: 12,
+    dailyGoal: {
+      target: 3,
+      completed: 2,
+      unit: 'sessions'
+    },
+    lastActivity: new Date().toISOString()
+  };
   
   useEffect(() => {
     const fetchData = async () => {
@@ -127,6 +143,20 @@ export default function DashboardPage() {
             "Ready to improve your English?"
           }
         </p>
+      </section>
+
+      {/* Progress Overview */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ProgressWidget 
+            data={progressData}
+            variant="dashboard"
+            showDailyGoal={true}
+          />
+        </div>
+        <div className="card">
+          <ProgressSummary data={progressData} />
+        </div>
       </section>
 
       {/* Daily Practice CTA */}

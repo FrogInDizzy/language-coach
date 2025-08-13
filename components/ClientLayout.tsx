@@ -5,15 +5,25 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import AuthForm from './AuthForm';
 import Sidebar from './Sidebar';
+import { ProgressData } from './ProgressWidget';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Mock user stats - in real app, this would come from API or context
-  const userStats = {
+  // Mock progress data - in real app, this would come from API or context
+  const progressData: ProgressData = {
+    currentXP: 1240,
+    currentLevel: 8,
+    xpForNextLevel: 950, // Will be calculated automatically
+    xpForCurrentLevel: 800, // Will be calculated automatically
     streak: 12,
-    xp: 1240
+    dailyGoal: {
+      target: 3,
+      completed: 2,
+      unit: 'sessions'
+    },
+    lastActivity: new Date().toISOString() // Today
   };
 
   if (loading) {
@@ -52,7 +62,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        userStats={userStats}
+        progressData={progressData}
       />
 
       {/* Main Layout */}
@@ -95,11 +105,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 <div className="flex md:hidden items-center gap-3 text-xs">
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                    <span className="font-medium text-neutral-700">{userStats.streak}</span>
+                    <span className="font-medium text-neutral-700">{progressData.streak}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-primary-400 rounded-full"></div>
-                    <span className="font-medium text-neutral-700">{userStats.xp}</span>
+                    <span className="font-medium text-neutral-700">{progressData.currentXP}</span>
                   </div>
                 </div>
 
