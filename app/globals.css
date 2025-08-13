@@ -9,7 +9,9 @@
   }
 
   body {
-    @apply bg-neutral-50 text-neutral-900 antialiased;
+    @apply antialiased;
+    background-color: #fafafa;
+    color: #171717;
     background-image: 
       radial-gradient(at 40% 20%, rgb(120 119 198 / 0.3) 0px, transparent 50%),
       radial-gradient(at 80% 0%, rgb(255 255 255) 0px, transparent 50%),
@@ -17,7 +19,7 @@
   }
 
   * {
-    @apply border-neutral-200;
+    border-color: #e5e5e5;
   }
 }
 
@@ -51,6 +53,10 @@
     @apply btn text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 focus:ring-primary-500 active:scale-[0.98];
   }
 
+  .btn-accent {
+    @apply btn bg-accent-500 text-white hover:bg-accent-600 focus:ring-accent-500 active:scale-[0.98] shadow-soft hover:shadow-medium;
+  }
+
   .input {
     @apply w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-neutral-200 rounded-xl text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
   }
@@ -77,6 +83,10 @@
 
   .badge-primary {
     @apply badge bg-primary-100 text-primary-700;
+  }
+
+  .badge-accent {
+    @apply badge bg-accent-100 text-accent-700;
   }
 
   /* Modern mistake category styling */
@@ -106,6 +116,34 @@
 
   .animate-scale {
     @apply animate-scale-in;
+  }
+
+  /* Sidebar specific styles */
+  .sidebar-backdrop {
+    @apply fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300;
+  }
+
+  .sidebar-panel {
+    @apply fixed top-0 left-0 h-full w-64 bg-white border-r border-neutral-200 z-50 shadow-xl;
+    @apply transform transition-transform duration-300 ease-in-out;
+    @apply md:translate-x-0 md:static md:z-auto md:shadow-none;
+  }
+
+  .sidebar-panel.closed {
+    @apply -translate-x-full md:translate-x-0;
+  }
+
+  .sidebar-panel.open {
+    @apply translate-x-0;
+  }
+
+  /* Main content adjustment for sidebar */
+  .main-content {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .main-content.sidebar-open {
+    @apply md:ml-64;
   }
 }
 

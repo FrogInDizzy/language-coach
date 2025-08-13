@@ -16,7 +16,7 @@ export default function Home() {
             Our AI identifies patterns in your speech to help you improve faster.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/practice" className="btn-primary text-lg px-8 py-4">
+            <Link href="/practice" className="btn-accent text-lg px-8 py-4">
               Start practicing
             </Link>
             <span className="text-sm text-neutral-500">Free • No credit card required</span>
@@ -125,7 +125,7 @@ export default function Home() {
           <p className="text-xl text-neutral-600 mb-8">
             Join thousands of learners who are already seeing results
           </p>
-          <Link href="/practice" className="btn-primary text-lg px-8 py-4">
+          <Link href="/practice" className="btn-accent text-lg px-8 py-4">
             Start your first session
           </Link>
         </div>

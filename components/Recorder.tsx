@@ -33,7 +33,7 @@ export default function Recorder({ onRecorded }: { onRecorded: (file: File) => v
       <div className="flex justify-center mb-6">
         <button
           onClick={triggerFileInput}
-          className="w-20 h-20 bg-accent hover:bg-accent/90 active:scale-95 rounded-full flex items-center justify-center shadow-2 transition-all duration-150 group"
+          className="w-20 h-20 bg-accent-500 hover:bg-accent-600 active:scale-95 rounded-full flex items-center justify-center shadow-lg transition-all duration-150 group"
         >
           <span className="text-white text-2xl group-hover:scale-110 transition-transform">🎤</span>
         </button>
@@ -41,11 +41,11 @@ export default function Recorder({ onRecorded }: { onRecorded: (file: File) => v
       
       {/* Instructions */}
       <div className="space-y-2">
-        <p className="text-ink font-medium">Ready to practice?</p>
-        <p className="text-sm text-ink-secondary">
+        <p className="text-neutral-900 font-medium">Ready to practice?</p>
+        <p className="text-sm text-neutral-600">
           For this demo, upload an audio file to simulate recording.
         </p>
-        <div className="text-xs text-ink-secondary space-y-1">
+        <div className="text-xs text-neutral-600 space-y-1">
           <p>💡 <strong>In the full version:</strong> Tap to start recording, speak naturally, then tap again to stop</p>
           <p>📱 Works on mobile and desktop with built-in microphone support</p>
         </div>
