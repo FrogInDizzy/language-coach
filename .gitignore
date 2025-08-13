@@ -3,6 +3,10 @@ node_modules
 # Environment variables (contains sensitive API keys)
 .env.local
 .env
+.env.example
+
+# Claude Code settings
+.claude/
 
 # Next.js build files
 .next/
