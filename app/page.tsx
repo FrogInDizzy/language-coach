@@ -1,25 +1,26 @@
 import Link from 'next/link';
+import { Card } from '@/components/ui/Card';
 
 export default function Home() {
   return (
-    <main className="max-w-6xl mx-auto px-6">
+    <main className="max-w-6xl mx-auto px-6 bg-gray-50 min-h-screen">
       {/* Hero Section */}
       <section className="py-20 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 mb-6 font-display leading-tight">
+        <div className="max-w-3xl mx-auto bg-white rounded-3xl p-12 shadow-sm">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
             Perfect your{' '}
-            <span className="text-gradient">English speaking</span>{' '}
+            <span className="bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent">English speaking</span>{' '}
             with AI coaching
           </h1>
-          <p className="text-xl text-neutral-600 mb-8 leading-relaxed">
+          <p className="text-lg text-gray-600 mb-8 leading-relaxed">
             Practice daily, get instant feedback, and track your progress. 
             Our AI identifies patterns in your speech to help you improve faster.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/practice" className="btn-accent text-lg px-8 py-4">
+            <Link href="/practice" className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-2xl font-medium transition-colors">
               Start practicing
             </Link>
-            <span className="text-sm text-neutral-500">Free • No credit card required</span>
+            <span className="text-sm text-gray-500">Free • No credit card required</span>
           </div>
         </div>
       </section>
@@ -36,9 +37,9 @@ export default function Home() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="card text-left">
-            <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <Card variant="solid" className="text-left">
+            <div className="w-12 h-12 bg-accent-100 rounded-2xl flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
             </div>
@@ -46,10 +47,10 @@ export default function Home() {
             <p className="text-neutral-600 leading-relaxed">
               Structured speaking exercises with engaging prompts. Practice for just 5 minutes daily and see real progress.
             </p>
-          </div>
+          </Card>
 
-          <div className="card text-left">
-            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
+          <Card variant="solid" className="text-left">
+            <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
@@ -58,10 +59,10 @@ export default function Home() {
             <p className="text-neutral-600 leading-relaxed">
               Advanced AI analyzes your speech patterns, grammar, and fluency to provide personalized improvement suggestions.
             </p>
-          </div>
+          </Card>
 
-          <div className="card text-left">
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+          <Card variant="solid" className="text-left">
+            <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
@@ -70,13 +71,13 @@ export default function Home() {
             <p className="text-neutral-600 leading-relaxed">
               Detailed analytics show your improvement over time. See which areas you're excelling in and what needs work.
             </p>
-          </div>
+          </Card>
         </div>
       </section>
 
       {/* How it Works */}
       <section className="py-16">
-        <div className="card-solid bg-gradient-to-br from-neutral-50 to-white">
+        <Card variant="solid" className="bg-gradient-to-br from-neutral-50 to-white">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-neutral-900 mb-4 font-display">
               Simple, effective process
@@ -86,7 +87,7 @@ export default function Home() {
           
           <div className="grid gap-8 md:grid-cols-3">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-medium">
+              <div className="w-16 h-16 bg-gradient-to-br from-accent-400 to-accent-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-medium">
                 <span className="text-white font-bold text-xl">1</span>
               </div>
               <h4 className="text-lg font-semibold text-neutral-900 mb-3">Record your voice</h4>
@@ -113,7 +114,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-        </div>
+        </Card>
       </section>
 
       {/* CTA */}

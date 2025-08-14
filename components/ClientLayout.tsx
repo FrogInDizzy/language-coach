@@ -5,26 +5,12 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import AuthForm from './AuthForm';
 import Sidebar from './Sidebar';
-import { ProgressData } from './ProgressWidget';
+import { useProgress } from '@/hooks/useProgress';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
+  const { progress: progressData } = useProgress();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Mock progress data - in real app, this would come from API or context
-  const progressData: ProgressData = {
-    currentXP: 1240,
-    currentLevel: 8,
-    xpForNextLevel: 950, // Will be calculated automatically
-    xpForCurrentLevel: 800, // Will be calculated automatically
-    streak: 12,
-    dailyGoal: {
-      target: 3,
-      completed: 2,
-      unit: 'sessions'
-    },
-    lastActivity: new Date().toISOString() // Today
-  };
 
   if (loading) {
     return (
@@ -57,7 +43,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fafafa' }}>
+    <div className="min-h-screen bg-white">
       {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}
@@ -66,19 +52,19 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       />
 
       {/* Main Layout */}
-      <div className="md:ml-64">
+      <div className="main-content">
         {/* Header */}
-        <header className="bg-white border-b border-neutral-200 sticky top-0 z-30">
+        <header className="bg-white border-b border-gray-100 sticky top-0 z-30">
           <div className="px-6 py-4">
             <div className="flex justify-between items-center">
               {/* Mobile menu button */}
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="md:hidden p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                className="md:hidden p-2 rounded-xl hover:bg-gray-50 transition-colors"
                 aria-label="Open sidebar"
               >
                 <svg
-                  className="w-5 h-5 text-neutral-600"
+                  className="w-5 h-5 text-gray-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -94,7 +80,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
               {/* Desktop brand (hidden on mobile since it's in sidebar) */}
               <div className="hidden md:block">
-                <h1 className="text-lg font-semibold text-neutral-900">
+                <h1 className="text-lg font-semibold text-gray-900">
                   Welcome back!
                 </h1>
               </div>
@@ -105,16 +91,16 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 <div className="flex md:hidden items-center gap-3 text-xs">
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                    <span className="font-medium text-neutral-700">{progressData.streak}</span>
+                    <span className="font-medium text-gray-700">{progressData?.streak || 0}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-primary-400 rounded-full"></div>
-                    <span className="font-medium text-neutral-700">{progressData.currentXP}</span>
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span className="font-medium text-gray-700">{progressData?.currentXP || 0}</span>
                   </div>
                 </div>
 
                 {/* Profile avatar */}
-                <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
                     {user.email?.[0]?.toUpperCase()}
                   </span>
@@ -123,7 +109,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 {/* Sign out button */}
                 <button
                   onClick={() => signOut()}
-                  className="text-neutral-500 hover:text-neutral-700 text-sm transition-colors"
+                  className="text-gray-500 hover:text-gray-700 text-sm transition-colors px-3 py-1 rounded-lg hover:bg-gray-50"
                 >
                   Sign out
                 </button>
@@ -133,7 +119,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </header>
 
         {/* Main content */}
-        <main className="min-h-screen">
+        <main className="min-h-screen bg-gray-50">
           {children}
         </main>
       </div>

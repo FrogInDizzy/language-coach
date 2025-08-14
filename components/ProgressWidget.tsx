@@ -1,38 +1,37 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-// Types for progress data
-export interface ProgressData {
-  currentXP: number;
-  currentLevel: number;
-  xpForNextLevel: number;
-  xpForCurrentLevel: number;
-  streak: number;
-  dailyGoal: {
-    target: number;
-    completed: number;
-    unit: string; // 'sessions', 'minutes', 'exercises'
-  };
-  lastActivity?: string; // ISO date string
-}
+import { useProgress, ProgressData } from '@/hooks/useProgress';
 
 interface ProgressWidgetProps {
-  data: ProgressData;
+  data?: ProgressData;
+  variant?: 'sidebar' | 'dashboard';
+  showDailyGoal?: boolean;
+  className?: string;
+}
+
+interface RealDataProgressWidgetProps {
   variant?: 'sidebar' | 'dashboard';
   showDailyGoal?: boolean;
   className?: string;
 }
 
 // XP calculation utilities
-const calculateXPForLevel = (level: number): number => {
-  // Progressive XP requirement: level * 100 + (level - 1) * 50
-  return level * 100 + Math.max(0, level - 1) * 50;
+const calculateCumulativeXPForLevel = (level: number): number => {
+  if (level <= 1) return 0;
+  
+  let cumulativeXP = 0;
+  for (let l = 2; l <= level; l++) {
+    // Cost to reach level l from level l-1: (l-1) * 100 + max(0, (l-1) - 1) * 50
+    const levelCost = ((l - 1) * 100) + (Math.max(0, (l - 1) - 1) * 50);
+    cumulativeXP += levelCost;
+  }
+  return cumulativeXP;
 };
 
 const getXPProgress = (currentXP: number, currentLevel: number) => {
-  const currentLevelXP = calculateXPForLevel(currentLevel);
-  const nextLevelXP = calculateXPForLevel(currentLevel + 1);
+  const currentLevelXP = calculateCumulativeXPForLevel(currentLevel);
+  const nextLevelXP = calculateCumulativeXPForLevel(currentLevel + 1);
   const xpInCurrentLevel = currentXP - currentLevelXP;
   const xpNeededForNext = nextLevelXP - currentLevelXP;
   const progressPercentage = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
@@ -70,12 +69,13 @@ const getStreakStatus = (streak: number, lastActivity?: string) => {
   return { status, message, daysSinceActivity: daysDiff };
 };
 
-export default function ProgressWidget({ 
-  data, 
+// Core progress widget component that accepts data as prop
+function ProgressWidgetCore({ 
+  data,
   variant = 'dashboard', 
   showDailyGoal = true,
-  className = '' 
-}: ProgressWidgetProps) {
+  className = ''
+}: ProgressWidgetProps & { data: ProgressData }) {
   const [animatedProgress, setAnimatedProgress] = useState(0);
   const [animatedXP, setAnimatedXP] = useState(0);
   
@@ -279,5 +279,76 @@ export function ProgressSummary({ data }: { data: ProgressData }) {
         <div className="text-sm text-neutral-600">Daily Goal</div>
       </div>
     </div>
+  );
+}
+
+// Component that uses real data from API
+export function RealDataProgressWidget({ 
+  variant = 'dashboard', 
+  showDailyGoal = true,
+  className = ''
+}: RealDataProgressWidgetProps) {
+  const { progress, loading, error } = useProgress();
+  
+  // Show loading state
+  if (loading) {
+    return (
+      <div className={`${variant === 'sidebar' ? 'space-y-3' : 'bg-white rounded-2xl p-6 shadow-soft border border-neutral-100'} ${className}`}>
+        <div className="animate-pulse">
+          <div className="h-4 bg-neutral-200 rounded mb-2"></div>
+          <div className="h-2 bg-neutral-200 rounded mb-4"></div>
+          <div className="h-4 bg-neutral-200 rounded mb-2"></div>
+          <div className="h-2 bg-neutral-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show error state
+  if (error && !progress) {
+    return (
+      <div className={`${variant === 'sidebar' ? 'space-y-3' : 'bg-white rounded-2xl p-6 shadow-soft border border-neutral-100'} ${className}`}>
+        <div className="text-center text-sm text-red-600">
+          <div className="mb-2">⚠️</div>
+          <div>Unable to load progress</div>
+        </div>
+      </div>
+    );
+  }
+  
+  // If no data available, return null
+  if (!progress) {
+    return null;
+  }
+  
+  return (
+    <ProgressWidgetCore 
+      data={progress}
+      variant={variant}
+      showDailyGoal={showDailyGoal}
+      className={className}
+    />
+  );
+}
+
+// Default export - static data version for backward compatibility
+export default function ProgressWidget({ 
+  data,
+  variant = 'dashboard', 
+  showDailyGoal = true,
+  className = ''
+}: ProgressWidgetProps) {
+  // If no data provided, return null
+  if (!data) {
+    return null;
+  }
+  
+  return (
+    <ProgressWidgetCore 
+      data={data}
+      variant={variant}
+      showDailyGoal={showDailyGoal}
+      className={className}
+    />
   );
 }

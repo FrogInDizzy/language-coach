@@ -7,28 +7,22 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import Recorder from '@/components/Recorder';
+import { useProgress } from '@/hooks/useProgress';
+import PracticePanel from '@/components/PracticePanel';
 import TranscriptWithHighlights from '@/components/TranscriptWithHighlights';
 import MistakeCard from '@/components/MistakeCard';
 import Link from 'next/link';
 
-const SAMPLE_PROMPTS = [
-  'Describe your favourite travel destination and why you love it.',
-  'Tell me about a challenging situation you overcame at work.',
-  'Explain how you would teach someone to cook your favorite dish.',
-  'Describe what makes a good friend and give an example.',
-  'Talk about a book or movie that changed your perspective on life.'
-];
-
 export default function PracticePage() {
   const { user } = useAuth();
+  const { updateProgress } = useProgress();
   const [transcript, setTranscript] = useState('');
   const [mistakes, setMistakes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [currentPromptIndex] = useState(0);
-  const prompt = SAMPLE_PROMPTS[currentPromptIndex];
+  const [currentPrompt, setCurrentPrompt] = useState<any>(null);
+  const [sessionResult, setSessionResult] = useState<any>(null);
   
   const userName = user?.email?.split('@')[0] || 'there';
 
@@ -67,18 +61,33 @@ export default function PracticePage() {
       if (!analyseRes.ok) throw new Error(analyseJson.error || 'Analysis error');
       setMistakes(analyseJson.mistakes || []);
       
-      // Persist sample
+      // Persist sample with prompt info
       await fetch('/api/samples', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt_id: null,
+          prompt_id: currentPrompt?.id || null,
           audio_url,
           transcript: text,
           duration_seconds: durationSeconds,
           mistakes: analyseJson.mistakes
         })
       });
+      
+      // Update user progress with real-time XP and streak calculation
+      try {
+        const mistakeCategories = analyseJson.mistakes?.map((m: any) => m.category) || [];
+        const progressResult = await updateProgress({
+          duration_seconds: durationSeconds,
+          mistake_count: analyseJson.mistakes?.length || 0,
+          mistake_categories: mistakeCategories
+        });
+        
+        setSessionResult(progressResult);
+      } catch (progressError) {
+        console.error('Failed to update progress:', progressError);
+        // Don't fail the whole session if progress update fails
+      }
       
       setShowResults(true);
     } catch (err: any) {
@@ -88,11 +97,16 @@ export default function PracticePage() {
     }
   };
 
+  const handlePromptChange = (prompt: any) => {
+    setCurrentPrompt(prompt);
+  };
+
   const resetSession = () => {
     setTranscript('');
     setMistakes([]);
     setShowResults(false);
     setError(null);
+    setSessionResult(null);
   };
 
   if (loading) {
@@ -120,11 +134,44 @@ export default function PracticePage() {
   if (showResults && transcript) {
     return (
       <main className="max-w-4xl mx-auto py-8 px-4 space-y-6">
-        {/* Success Header */}
+        {/* Success Header with XP Results */}
         <div className="text-center">
           <div className="text-4xl mb-2">🎉</div>
           <h1 className="text-2xl font-bold text-neutral-900 mb-2 font-display">Great job, {userName}!</h1>
           <p className="text-neutral-600">Here's your personalized feedback</p>
+          
+          {/* XP and Level Progress */}
+          {sessionResult && (
+            <div className="mt-6 bg-gradient-to-r from-accent-50 to-primary-50 border border-accent-200 rounded-2xl p-6">
+              <div className="flex items-center justify-center gap-6 mb-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-accent-600">+{sessionResult.xp_earned}</div>
+                  <div className="text-sm text-neutral-600">XP Earned</div>
+                </div>
+                {sessionResult.level_up && (
+                  <div className="text-center">
+                    <div className="text-2xl">🌟</div>
+                    <div className="text-sm font-semibold text-primary-600">Level Up!</div>
+                    <div className="text-xs text-neutral-600">Level {sessionResult.level}</div>
+                  </div>
+                )}
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-500">{sessionResult.streak}</div>
+                  <div className="text-sm text-neutral-600">Day Streak</div>
+                </div>
+              </div>
+              
+              {sessionResult.level_up ? (
+                <p className="text-sm text-primary-700 font-medium">
+                  🎊 Congratulations! You've reached Level {sessionResult.level}!
+                </p>
+              ) : (
+                <p className="text-sm text-accent-700">
+                  Keep practicing to earn more XP and level up!
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Transcript */}
@@ -182,7 +229,7 @@ export default function PracticePage() {
               No grammar mistakes detected in your speech. Excellent work!
             </p>
             <div className="text-sm text-neutral-600">
-              <strong>+50 XP</strong> • Keep up the great work!
+              <strong>+{sessionResult?.xp_earned || 50} XP</strong> • Keep up the great work!
             </div>
           </div>
         )}
@@ -206,75 +253,14 @@ export default function PracticePage() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto py-8 px-4">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-neutral-900 mb-2 font-display">
-          Daily Speaking Practice 🎤
-        </h1>
-        <p className="text-neutral-600">
-          Practice for 3-5 minutes and get personalized feedback
-        </p>
-      </div>
-
-      {/* Today's Prompt */}
-      <div className="card bg-accent-100/50 border-accent-200 mb-6">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-accent-500 rounded-full flex items-center justify-center">
-            <span className="text-white">💭</span>
-          </div>
-          <div>
-            <h2 className="font-semibold text-neutral-900 mb-2">Today's Prompt</h2>
-            <p className="text-neutral-900 leading-relaxed">{prompt}</p>
-            <div className="mt-3 text-sm text-neutral-600">
-              <strong>Tip:</strong> Speak naturally for 1-3 minutes. Don't worry about perfect grammar - we'll help you improve!
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recorder */}
-      <div className="card">
-        <Recorder onRecorded={handleRecording} />
-      </div>
-
-      {/* Error State */}
-      {error && (
-        <div className="card bg-red-50 border-red-200 mt-6">
-          <div className="flex gap-3">
-            <span className="text-red-600 text-xl">⚠️</span>
-            <div>
-              <h3 className="font-semibold text-red-600 mb-1">Something went wrong</h3>
-              <p className="text-sm text-neutral-600 mb-3">{error}</p>
-              <button 
-                onClick={() => setError(null)}
-                className="btn-secondary !py-2 !px-3 text-sm"
-              >
-                Try Again
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tips */}
-      <div className="mt-8 space-y-4">
-        <h3 className="font-semibold text-neutral-900">Tips for great practice:</h3>
-        <div className="grid gap-3 text-sm">
-          <div className="flex gap-2">
-            <span>🎯</span>
-            <span className="text-neutral-600">Speak clearly and at a comfortable pace</span>
-          </div>
-          <div className="flex gap-2">
-            <span>⏱️</span>
-            <span className="text-neutral-600">Aim for 1-3 minutes of natural speech</span>
-          </div>
-          <div className="flex gap-2">
-            <span>💪</span>
-            <span className="text-neutral-600">Don't worry about mistakes - they help you learn!</span>
-          </div>
-        </div>
-      </div>
+    <main className="py-8 px-6">
+      <PracticePanel
+        onRecording={handleRecording}
+        loading={loading}
+        error={error}
+        currentPrompt={currentPrompt}
+        onPromptChange={handlePromptChange}
+      />
     </main>
   );
 }
