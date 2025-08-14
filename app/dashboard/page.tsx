@@ -5,11 +5,13 @@ import { useAuth } from '@/lib/auth';
 import WeeklyFocus from '@/components/WeeklyFocus';
 import { RealDataProgressWidget, ProgressSummary } from '@/components/ProgressWidget';
 import PersonalizedGreeting from '@/components/PersonalizedGreeting';
+import DailyQuestPanel from '@/components/DailyQuestPanel';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { mockProgressData, mockRecentMistakes } from '@/lib/mockData';
 import { Card } from '@/components/ui/Card';
 import { EmptyPanel } from '@/components/ui/EmptyPanel';
 import { FocusAreasEmptyState, TrendsEmptyState, AccuracyEmptyState } from '@/components/ui/EmptyState';
+import { useFocusPractice } from '@/hooks/useFocusPractice';
 import Link from 'next/link';
 
 interface TopMistake { category: string; count: number; }
@@ -48,6 +50,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { getCategoryMetrics } = useFocusPractice();
   
   useEffect(() => {
     // Use mock data instead of API call
@@ -206,6 +209,19 @@ export default function DashboardPage() {
         </Link>
       </section>
 
+      {/* Daily Quest Panel */}
+      <section>
+        <DailyQuestPanel 
+          variant="dashboard"
+          onQuestComplete={(questId, xpEarned) => {
+            console.log(`Quest ${questId} completed! +${xpEarned} XP`);
+          }}
+          onAllQuestsComplete={(totalXp, streakShield) => {
+            console.log(`All quests complete! +${totalXp} XP, Shield: ${streakShield}`);
+          }}
+        />
+      </section>
+
       {data && (
         <>
           {/* Weekly Focus */}
@@ -213,65 +229,133 @@ export default function DashboardPage() {
             <WeeklyFocus goal={data.weeklyGoal} />
           </section>
 
-          {/* Enhanced Stats Grid */}
-          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {/* Focus Areas */}
-            <div className="card-solid border-l-4 border-l-amber-400">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl flex items-center justify-center shadow-sm">
-                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-neutral-900">Focus Areas</h3>
-                  <p className="text-sm text-neutral-600">Areas needing attention</p>
+          {/* Focus Areas - Full Width Section */}
+          <section className="mb-8">
+            <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm">
+              <div className="p-6 pb-4 border-b border-neutral-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl flex items-center justify-center">
+                      <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-neutral-900">Your Practice Focus</h3>
+                      <p className="text-sm text-neutral-600">Ready-to-practice areas for quick improvement</p>
+                    </div>
+                  </div>
+                  <div className="hidden sm:block text-xs text-neutral-500 bg-neutral-50 px-3 py-1.5 rounded-full">
+                    2-min drills
+                  </div>
                 </div>
               </div>
               
+              <div className="p-6 pt-5">
+              
               {data.topMistakes.length > 0 ? (
-                <div className="space-y-4">
-                  {data.topMistakes.slice(0, 3).map((mistake, idx) => (
-                    <div key={idx} className="group flex items-center justify-between p-4 bg-gradient-to-r from-neutral-50 to-neutral-25 rounded-xl border border-neutral-100 hover:shadow-sm transition-all duration-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                          <span className="text-lg">
-                            {mistake.category === 'articles' ? '📰' :
-                             mistake.category === 'verb_tense' ? '⏰' :
-                             mistake.category === 'prepositions' ? '🔗' :
-                             mistake.category === 'pluralization' ? '📊' : '💬'}
-                          </span>
+                <div className="space-y-3">
+                  {data.topMistakes.slice(0, 3).map((mistake, idx) => {
+                    const practiceMetrics = getCategoryMetrics(mistake.category);
+                    const categoryIcon = mistake.category === 'articles' ? '📰' :
+                                       mistake.category === 'verb_tense' ? '⏰' :
+                                       mistake.category === 'prepositions' ? '🔗' :
+                                       mistake.category === 'pluralization' ? '📊' : '💬';
+                    
+                    return (
+                      <div key={idx} className="group bg-white rounded-xl border border-neutral-200 hover:border-amber-300 focus-card-hover overflow-hidden">
+                        {/* Header Section */}
+                        <div className="p-4 pb-3">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
+                                <span className="text-xl">{categoryIcon}</span>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-neutral-900 text-base">
+                                  {formatCategoryName(mistake.category)}
+                                </h4>
+                                <p className="text-sm text-neutral-600">
+                                  {mistake.count} {mistake.count === 1 ? 'mistake' : 'mistakes'} • {idx === 0 ? 'Most common' : idx === 1 ? 'Second most' : 'Third most'}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {/* Progress Indicator */}
+                            {practiceMetrics.sessions > 0 && (
+                              <div className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                practiceMetrics.trend === 'improving' ? 'bg-emerald-100 text-emerald-700' :
+                                practiceMetrics.trend === 'declining' ? 'bg-rose-100 text-rose-700' :
+                                'bg-neutral-100 text-neutral-600'
+                              }`}>
+                                {practiceMetrics.trend === 'improving' ? '📈 Improving' :
+                                 practiceMetrics.trend === 'declining' ? '📉 Needs focus' : '➡️ Stable'}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Practice Stats (if available) */}
+                          {practiceMetrics.sessions > 0 && (
+                            <div className="flex items-center gap-4 text-xs text-neutral-600 mb-3">
+                              <span className="flex items-center gap-1">
+                                <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                                {practiceMetrics.sessions} practice {practiceMetrics.sessions === 1 ? 'session' : 'sessions'}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                                {Math.round(practiceMetrics.avgEffectiveness * 100)}% effectiveness
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <span className={`badge mistake-${mistake.category} text-xs`}>
-                            {formatCategoryName(mistake.category)}
-                          </span>
-                          <div className="text-xs text-neutral-500 mt-1">
-                            {idx === 0 ? 'Most common' : idx === 1 ? 'Second most' : 'Third most'}
+                        
+                        {/* Action Section */}
+                        <div className="bg-amber-25 px-4 py-3 border-t border-amber-100">
+                          <div className="flex items-center justify-between">
+                            <div className="text-xs text-amber-700">
+                              <span className="font-medium">2-minute focused drill</span>
+                              <span className="text-amber-600 ml-2">• Quick improvement practice</span>
+                            </div>
+                            <Link 
+                              href={`/practice?focus=${mistake.category}&drill=micro`}
+                              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 flex items-center gap-2 group shadow-md hover:shadow-lg transform hover:scale-105"
+                            >
+                              <div className="w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center text-amber-900 text-xs">
+                                {categoryIcon}
+                              </div>
+                              <span>{practiceMetrics.sessions > 0 ? 'Practice Again' : 'Start 2-Min Drill'}</span>
+                              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                              </svg>
+                            </Link>
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-amber-600">{mistake.count}</div>
-                        <div className="text-xs text-neutral-500">occurrences</div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <div className="pt-2">
-                    <Link href="/practice" className="text-sm text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1 group">
-                      Practice to improve
-                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                  </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <FocusAreasEmptyState size="small" />
               )}
+              
+              {/* Footer Action */}
+              <div className="px-6 py-4 bg-neutral-25 border-t border-neutral-100 rounded-b-2xl">
+                <Link href="/practice" className="text-sm text-amber-700 hover:text-amber-800 font-medium flex items-center gap-2 group">
+                  <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>View all practice options</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+              </div>
             </div>
+          </section>
 
+          {/* Enhanced Stats Grid */}
+          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* Progress Trends */}
             <div className="card-solid border-l-4 border-l-emerald-400">
               <div className="flex items-center gap-3 mb-6">

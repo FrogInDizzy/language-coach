@@ -88,7 +88,7 @@ export default function SessionCelebrationModal({
 
   // Generate quick drill suggestions
   const getQuickDrillSuggestions = (): Array<{category: string, title: string, icon: string}> => {
-    const suggestions = [];
+    const suggestions: Array<{category: string, title: string, icon: string}> = [];
     const categoryInfo = {
       'articles': { title: 'Article Drills', icon: '📰' },
       'verb_tense': { title: 'Verb Tense Practice', icon: '⏰' },

@@ -5,18 +5,29 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useProgress } from '@/hooks/useProgress';
+import { useSearchParams, useRouter } from 'next/navigation';
 import PracticePanel from '@/components/PracticePanel';
+import MicroPracticeSession from '@/components/MicroPracticeSession';
 import TranscriptWithHighlights from '@/components/TranscriptWithHighlights';
 import MistakeCard from '@/components/MistakeCard';
 import SessionCelebrationModal from '@/components/SessionCelebrationModal';
+import { updateQuestsFromSession, SessionQuestUpdate } from '@/lib/questIntegration';
 import Link from 'next/link';
 
 export default function PracticePage() {
   const { user } = useAuth();
   const { updateProgress } = useProgress();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Check if this is a focus drill session
+  const focusCategory = searchParams.get('focus');
+  const drillType = searchParams.get('drill');
+  const isMicroSession = focusCategory && drillType === 'micro';
+  
   const [transcript, setTranscript] = useState('');
   const [mistakes, setMistakes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,8 +41,17 @@ export default function PracticePage() {
     mistakeCategories: string[];
     durationSeconds: number;
   } | null>(null);
+  const [questUpdates, setQuestUpdates] = useState<SessionQuestUpdate[]>([]);
+  const [showMicroSession, setShowMicroSession] = useState(false);
   
   const userName = user?.email?.split('@')[0] || 'there';
+
+  // Show micro session if accessing with focus parameters
+  useEffect(() => {
+    if (isMicroSession) {
+      setShowMicroSession(true);
+    }
+  }, [isMicroSession]);
 
   const handleRecording = async (file: File) => {
     setError(null);
@@ -91,11 +111,25 @@ export default function PracticePage() {
         });
         
         setSessionResult(progressResult);
-        setSessionData({
+        const currentSessionData = {
           mistakeCount: analyseJson.mistakes?.length || 0,
           mistakeCategories: mistakeCategories,
           durationSeconds: durationSeconds
-        });
+        };
+        
+        setSessionData(currentSessionData);
+
+        // Update quests based on session performance
+        try {
+          const questUpdate = await updateQuestsFromSession({
+            ...currentSessionData,
+            transcript: text
+          });
+          setQuestUpdates(questUpdate);
+        } catch (questError) {
+          console.error('Failed to update quests:', questError);
+          // Don't fail the session if quest update fails
+        }
       } catch (progressError) {
         console.error('Failed to update progress:', progressError);
         // Don't fail the whole session if progress update fails
@@ -105,7 +139,7 @@ export default function PracticePage() {
       
       // Show celebration modal after a brief delay
       setTimeout(() => {
-        if (progressResult) {
+        if (sessionResult) {
           setShowCelebration(true);
         }
       }, 1500);
@@ -139,6 +173,45 @@ export default function PracticePage() {
     setShowCelebration(false);
     // TODO: Implement quick drill navigation/modal
     console.log('Quick drill for category:', category);
+  };
+
+  const handleMicroSessionComplete = (result: {
+    duration: number;
+    mistakes: number;
+    improved: boolean;
+  }) => {
+    setShowMicroSession(false);
+    
+    // Update progress for micro-session
+    if (result.improved) {
+      // Simulate progress update for targeted practice
+      updateProgress({
+        duration_seconds: result.duration,
+        mistake_count: result.mistakes,
+        mistake_categories: focusCategory ? [focusCategory] : []
+      }).then((progressResult) => {
+        setSessionResult(progressResult);
+        setSessionData({
+          mistakeCount: result.mistakes,
+          mistakeCategories: focusCategory ? [focusCategory] : [],
+          durationSeconds: result.duration
+        });
+        
+        // Show success message
+        setShowResults(true);
+        setShowCelebration(true);
+      }).catch(console.error);
+    }
+    
+    // Navigate back to dashboard after a delay
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 3000);
+  };
+
+  const handleMicroSessionCancel = () => {
+    setShowMicroSession(false);
+    router.push('/dashboard');
   };
 
   if (loading) {
@@ -201,6 +274,26 @@ export default function PracticePage() {
                 <p className="text-sm text-accent-700">
                   Keep practicing to earn more XP and level up!
                 </p>
+              )}
+              
+              {/* Quest Completion Notifications */}
+              {questUpdates.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-accent-200">
+                  <h4 className="text-sm font-medium text-accent-700 mb-2">Quest Progress:</h4>
+                  <div className="space-y-1">
+                    {questUpdates.map((update, index) => (
+                      <div key={index} className="flex items-center gap-2 text-xs text-accent-600">
+                        <span className={update.completed ? "text-green-600" : "text-amber-600"}>
+                          {update.completed ? "✅" : "📈"}
+                        </span>
+                        <span>{update.reason}</span>
+                        {update.completed && (
+                          <span className="text-green-600 font-medium">+{update.xpEarned} XP</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -295,6 +388,15 @@ export default function PracticePage() {
           onPromptChange={handlePromptChange}
         />
       </main>
+
+      {/* Micro Practice Session Modal */}
+      {showMicroSession && focusCategory && (
+        <MicroPracticeSession
+          focusCategory={focusCategory}
+          onComplete={handleMicroSessionComplete}
+          onCancel={handleMicroSessionCancel}
+        />
+      )}
 
       {/* Session Celebration Modal */}
       {showCelebration && sessionResult && sessionData && (

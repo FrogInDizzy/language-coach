@@ -615,4 +615,43 @@
     transform: translateZ(0);
     perspective: 1000px;
   }
+
+  /* Focus Areas custom styling */
+  .bg-amber-25 {
+    background-color: rgba(251, 191, 36, 0.05);
+  }
+
+  .bg-neutral-25 {
+    background-color: rgba(115, 115, 115, 0.03);
+  }
+
+  .text-amber-600 {
+    color: rgb(217, 119, 6);
+  }
+
+  .text-amber-700 {
+    color: rgb(180, 83, 9);
+  }
+
+  .text-amber-800 {
+    color: rgb(146, 64, 14);
+  }
+
+  .border-amber-100 {
+    border-color: rgb(254, 243, 199);
+  }
+
+  .border-amber-300 {
+    border-color: rgb(252, 211, 77);
+  }
+
+  /* Focus card hover animation */
+  .focus-card-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .focus-card-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
 }
