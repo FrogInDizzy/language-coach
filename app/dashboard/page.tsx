@@ -9,6 +9,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { mockProgressData, mockRecentMistakes } from '@/lib/mockData';
 import { Card } from '@/components/ui/Card';
 import { EmptyPanel } from '@/components/ui/EmptyPanel';
+import { FocusAreasEmptyState, TrendsEmptyState, AccuracyEmptyState } from '@/components/ui/EmptyState';
 import Link from 'next/link';
 
 interface TopMistake { category: string; count: number; }
@@ -267,16 +268,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 px-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl">🎯</span>
-                  </div>
-                  <h4 className="font-semibold text-neutral-900 mb-2">No focus areas yet</h4>
-                  <p className="text-sm text-neutral-600 mb-4">Complete practice sessions to identify improvement areas</p>
-                  <Link href="/practice" className="btn-accent text-sm px-4 py-2">
-                    Start First Session
-                  </Link>
-                </div>
+                <FocusAreasEmptyState size="small" />
               )}
             </div>
 
@@ -325,16 +317,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 px-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl">📈</span>
-                  </div>
-                  <h4 className="font-semibold text-neutral-900 mb-2">No trends yet</h4>
-                  <p className="text-sm text-neutral-600 mb-4">Complete multiple sessions to see improvement trends</p>
-                  <Link href="/practice" className="btn-secondary text-sm px-4 py-2">
-                    Practice More
-                  </Link>
-                </div>
+                <TrendsEmptyState size="small" />
               )}
             </div>
 
@@ -391,16 +374,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 px-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl">📊</span>
-                  </div>
-                  <h4 className="font-semibold text-neutral-900 mb-2">No accuracy data yet</h4>
-                  <p className="text-sm text-neutral-600 mb-4">Complete practice sessions to track your accuracy</p>
-                  <Link href="/practice" className="btn-primary text-sm px-4 py-2">
-                    Start Tracking
-                  </Link>
-                </div>
+                <AccuracyEmptyState size="small" />
               )}
             </div>
           </section>

@@ -459,4 +459,160 @@
   .animate-scale-in {
     animation: scale-in 0.2s ease-out;
   }
+
+  /* Empty State Animations */
+  .empty-state-hover {
+    transition: all 150ms ease-out;
+  }
+
+  .empty-state-hover:hover {
+    transform: translateY(-2px);
+  }
+
+  .empty-state-illustration {
+    transition: transform 150ms ease-out;
+  }
+
+  .empty-state-illustration:hover {
+    transform: scale(1.05);
+  }
+
+  /* Pulse animation delays for illustrations */
+  .animate-pulse-delay-100 {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation-delay: 100ms;
+  }
+
+  .animate-pulse-delay-200 {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation-delay: 200ms;
+  }
+
+  .animate-pulse-delay-300 {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation-delay: 300ms;
+  }
+
+  .animate-pulse-delay-400 {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation-delay: 400ms;
+  }
+
+  .animate-pulse-delay-500 {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation-delay: 500ms;
+  }
+
+  /* Session Celebration Animations - GPU Accelerated */
+  .animate-xp-counter {
+    animation: xp-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transform: translateZ(0); /* Force GPU acceleration */
+  }
+
+  .animate-confetti-fall {
+    animation: confetti-fall 3s ease-out;
+    transform: translateZ(0); /* Force GPU acceleration */
+  }
+
+  .animate-streak-flame {
+    animation: flame-flicker 2s ease-in-out infinite;
+    transform: translateZ(0); /* Force GPU acceleration */
+  }
+
+  .animate-celebration-bounce {
+    animation: celebration-bounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transform: translateZ(0); /* Force GPU acceleration */
+  }
+
+  .animate-level-up-pulse {
+    animation: level-up-pulse 1s ease-out;
+    transform: translateZ(0); /* Force GPU acceleration */
+  }
+
+  @keyframes xp-bounce {
+    0% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.8) translateZ(0);
+    }
+    60% {
+      opacity: 1;
+      transform: translateY(-10px) scale(1.1) translateZ(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1) translateZ(0);
+    }
+  }
+
+  @keyframes confetti-fall {
+    0% {
+      opacity: 1;
+      transform: translateY(-100vh) rotateZ(0deg) translateZ(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(100vh) rotateZ(720deg) translateZ(0);
+    }
+  }
+
+  @keyframes flame-flicker {
+    0%, 100% {
+      transform: scale(1) rotate(-1deg) translateZ(0);
+      filter: brightness(1);
+    }
+    25% {
+      transform: scale(1.05) rotate(1deg) translateZ(0);
+      filter: brightness(1.1);
+    }
+    50% {
+      transform: scale(0.95) rotate(-0.5deg) translateZ(0);
+      filter: brightness(0.9);
+    }
+    75% {
+      transform: scale(1.02) rotate(0.5deg) translateZ(0);
+      filter: brightness(1.05);
+    }
+  }
+
+  @keyframes celebration-bounce {
+    0% {
+      opacity: 0;
+      transform: scale(0.3) translateY(50px) translateZ(0);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.1) translateY(-20px) translateZ(0);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0) translateZ(0);
+    }
+  }
+
+  @keyframes level-up-pulse {
+    0% {
+      transform: scale(1) translateZ(0);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+    }
+    50% {
+      transform: scale(1.05) translateZ(0);
+      box-shadow: 0 0 0 20px rgba(34, 197, 94, 0);
+    }
+    100% {
+      transform: scale(1) translateZ(0);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+  }
+
+  /* Performance optimizations for celebration animations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+  }
+
+  .celebration-container {
+    transform: translateZ(0);
+    perspective: 1000px;
+  }
 }

@@ -8,6 +8,10 @@ interface EmptyPanelProps {
   className?: string;
 }
 
+/**
+ * @deprecated Use EmptyState component instead for better UX and animations
+ * This component is kept for backward compatibility
+ */
 export function EmptyPanel({ 
   icon = "📋", 
   title, 
@@ -18,7 +22,7 @@ export function EmptyPanel({
   return (
     <Card variant="solid" className={className}>
       <div className="text-center py-8">
-        <div className="text-4xl mb-4" role="img" aria-label={title}>
+        <div className="text-4xl mb-4 empty-state-illustration" role="img" aria-label={title}>
           {icon}
         </div>
         <h3 className="text-lg font-semibold text-neutral-900 mb-2">

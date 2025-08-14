@@ -11,6 +11,7 @@ import { useProgress } from '@/hooks/useProgress';
 import PracticePanel from '@/components/PracticePanel';
 import TranscriptWithHighlights from '@/components/TranscriptWithHighlights';
 import MistakeCard from '@/components/MistakeCard';
+import SessionCelebrationModal from '@/components/SessionCelebrationModal';
 import Link from 'next/link';
 
 export default function PracticePage() {
@@ -23,6 +24,12 @@ export default function PracticePage() {
   const [showResults, setShowResults] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState<any>(null);
   const [sessionResult, setSessionResult] = useState<any>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [sessionData, setSessionData] = useState<{
+    mistakeCount: number;
+    mistakeCategories: string[];
+    durationSeconds: number;
+  } | null>(null);
   
   const userName = user?.email?.split('@')[0] || 'there';
 
@@ -84,12 +91,24 @@ export default function PracticePage() {
         });
         
         setSessionResult(progressResult);
+        setSessionData({
+          mistakeCount: analyseJson.mistakes?.length || 0,
+          mistakeCategories: mistakeCategories,
+          durationSeconds: durationSeconds
+        });
       } catch (progressError) {
         console.error('Failed to update progress:', progressError);
         // Don't fail the whole session if progress update fails
       }
       
       setShowResults(true);
+      
+      // Show celebration modal after a brief delay
+      setTimeout(() => {
+        if (progressResult) {
+          setShowCelebration(true);
+        }
+      }, 1500);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -107,6 +126,19 @@ export default function PracticePage() {
     setShowResults(false);
     setError(null);
     setSessionResult(null);
+    setShowCelebration(false);
+    setSessionData(null);
+  };
+
+  const handleCelebrationClose = () => {
+    setShowCelebration(false);
+  };
+
+  const handleQuickDrill = (category: string) => {
+    // Close celebration modal and potentially start a quick drill
+    setShowCelebration(false);
+    // TODO: Implement quick drill navigation/modal
+    console.log('Quick drill for category:', category);
   };
 
   if (loading) {
@@ -253,14 +285,27 @@ export default function PracticePage() {
   }
 
   return (
-    <main className="py-8 px-6">
-      <PracticePanel
-        onRecording={handleRecording}
-        loading={loading}
-        error={error}
-        currentPrompt={currentPrompt}
-        onPromptChange={handlePromptChange}
-      />
-    </main>
+    <>
+      <main className="py-8 px-6">
+        <PracticePanel
+          onRecording={handleRecording}
+          loading={loading}
+          error={error}
+          currentPrompt={currentPrompt}
+          onPromptChange={handlePromptChange}
+        />
+      </main>
+
+      {/* Session Celebration Modal */}
+      {showCelebration && sessionResult && sessionData && (
+        <SessionCelebrationModal
+          isOpen={showCelebration}
+          onClose={handleCelebrationClose}
+          sessionResult={sessionResult}
+          sessionData={sessionData}
+          onQuickDrill={handleQuickDrill}
+        />
+      )}
+    </>
   );
 }

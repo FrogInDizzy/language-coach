@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { HistoryEmptyState } from '@/components/ui/EmptyState';
 
 // Enhanced interfaces for better data structure
 interface Mistake {
@@ -198,46 +199,37 @@ export default function HistoryPage() {
   if (samples.length === 0) {
     return (
       <main className="max-w-6xl mx-auto py-8 px-6">
-        <div className="text-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-3xl flex items-center justify-center mx-auto mb-6">
-            <span className="text-4xl">🎤</span>
+        <HistoryEmptyState 
+          size="large"
+          description="Start practicing to build a history of progress that will motivate and inspire your learning journey. Every session becomes part of your success story."
+          actions={[
+            { label: "Start First Session", href: "/practice", variant: "primary" },
+            { label: "Go to Dashboard", href: "/dashboard", variant: "secondary" }
+          ]}
+        />
+        
+        {/* Features preview */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center empty-state-hover">
+            <div className="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">📊</span>
+            </div>
+            <h3 className="font-semibold text-neutral-900 mb-2">Track Progress</h3>
+            <p className="text-sm text-neutral-600">See how your accuracy improves over time</p>
           </div>
-          <h1 className="text-3xl font-bold text-neutral-900 mb-4 font-display">No practice sessions yet</h1>
-          <p className="text-lg text-neutral-600 mb-8 max-w-md mx-auto">
-            Start your first practice session to begin tracking your progress and see your improvement over time.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/practice" className="btn-accent text-lg px-8 py-4">
-              Start First Session
-            </Link>
-            <Link href="/dashboard" className="btn-secondary text-lg px-8 py-4">
-              Go to Dashboard
-            </Link>
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center empty-state-hover">
+            <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">🔍</span>
+            </div>
+            <h3 className="font-semibold text-neutral-900 mb-2">Review Mistakes</h3>
+            <p className="text-sm text-neutral-600">Learn from detailed feedback on each session</p>
           </div>
-          
-          {/* Features preview */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="card text-center">
-              <div className="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📊</span>
-              </div>
-              <h3 className="font-semibold text-neutral-900 mb-2">Track Progress</h3>
-              <p className="text-sm text-neutral-600">See how your accuracy improves over time</p>
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center empty-state-hover">
+            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">📈</span>
             </div>
-            <div className="card text-center">
-              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🔍</span>
-              </div>
-              <h3 className="font-semibold text-neutral-900 mb-2">Review Mistakes</h3>
-              <p className="text-sm text-neutral-600">Learn from detailed feedback on each session</p>
-            </div>
-            <div className="card text-center">
-              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📈</span>
-              </div>
-              <h3 className="font-semibold text-neutral-900 mb-2">Filter & Sort</h3>
-              <p className="text-sm text-neutral-600">Find specific sessions with powerful filters</p>
-            </div>
+            <h3 className="font-semibold text-neutral-900 mb-2">Filter & Sort</h3>
+            <p className="text-sm text-neutral-600">Find specific sessions with powerful filters</p>
           </div>
         </div>
       </main>
@@ -299,18 +291,20 @@ export default function HistoryPage() {
 
       {/* Sessions Grid */}
       {filteredSamples.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🔍</span>
+        <div className="bg-white rounded-2xl border border-gray-100 p-8">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-4 empty-state-illustration">
+              <span className="text-2xl">🔍</span>
+            </div>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">No sessions match your filters</h3>
+            <p className="text-neutral-600 mb-4">Try adjusting your filters to see more results, or clear them to view all sessions.</p>
+            <button
+              onClick={() => setFilters({ dateRange: 'all', category: 'all', sortBy: 'newest' })}
+              className="btn-secondary text-sm"
+            >
+              Clear Filters
+            </button>
           </div>
-          <h3 className="text-lg font-semibold text-neutral-900 mb-2">No sessions match your filters</h3>
-          <p className="text-neutral-600 mb-4">Try adjusting your filters to see more results</p>
-          <button
-            onClick={() => setFilters({ dateRange: 'all', category: 'all', sortBy: 'newest' })}
-            className="btn-secondary text-sm"
-          >
-            Clear Filters
-          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
