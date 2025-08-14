@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/lib/auth';
 
 // Types
@@ -183,6 +183,26 @@ export default function PracticePanel({
     }
   }, [selectedPrompt, onPromptChange]);
 
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Keyboard shortcut for spacebar
+  const handleKeyPress = useCallback((event: KeyboardEvent) => {
+    // Only trigger if not typing in an input field and recording is idle
+    if (event.code === 'Space' && 
+        recordingState === 'idle' && 
+        !['INPUT', 'TEXTAREA', 'BUTTON'].includes((event.target as HTMLElement)?.tagName)) {
+      event.preventDefault();
+      handleFileUpload();
+    }
+  }, [recordingState, handleFileUpload]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [handleKeyPress]);
+
   // Simulate recording timer (in real app, this would track actual recording)
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -195,10 +215,6 @@ export default function PracticePanel({
     }
     return () => clearInterval(interval);
   }, [recordingState]);
-
-  const handleFileUpload = () => {
-    fileInputRef.current?.click();
-  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -247,18 +263,68 @@ export default function PracticePanel({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-      {/* Main Recording Panel */}
-      <div className="lg:col-span-2 space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-3 font-display">
-            Daily Speaking Practice 🎤
-          </h1>
-          <p className="text-lg text-neutral-600">
-            Hello {userName}! Practice for 3-5 minutes and get personalized feedback
-          </p>
+    <div className="max-w-7xl mx-auto">
+      {/* Sticky Record Button - Above the fold */}
+      <div className="sticky top-4 z-20 mb-8">
+        <div className="flex justify-center">
+          <div className="bg-white/95 backdrop-blur-lg border border-neutral-200 rounded-3xl p-6 shadow-lg">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            
+            {/* Main Record Button */}
+            <div className="text-center space-y-4">
+              <button
+                onClick={handleFileUpload}
+                disabled={recordingState === 'processing'}
+                className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 transform hover:scale-105 focus:scale-105 focus:outline-none focus:ring-4 focus:ring-accent-200 ${
+                  recordingState === 'processing' 
+                    ? 'bg-neutral-300 cursor-not-allowed' 
+                    : 'bg-accent-500 hover:bg-accent-600 active:scale-95'
+                }`}
+              >
+                <span className="text-white text-3xl md:text-4xl">
+                  {recordingState === 'processing' ? '⏳' : '🎤'}
+                </span>
+              </button>
+              
+              <div className="space-y-2">
+                <p className="text-neutral-900 font-semibold text-lg">
+                  {recordingState === 'processing' ? 'Processing...' : 'Ready to practice?'}
+                </p>
+                <p className="text-sm text-neutral-600">
+                  {recordingState === 'processing' 
+                    ? 'Please wait while we process your speech' 
+                    : 'Tap to start or press spacebar'
+                  }
+                </p>
+                {recordingState === 'recording' && (
+                  <div className="text-sm text-accent-600 font-medium">
+                    Recording: {formatTime(recordingTime)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Recording Panel */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Header */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-neutral-900 mb-3 font-display">
+              Daily Speaking Practice 🎤
+            </h1>
+            <p className="text-lg text-neutral-600">
+              Hello {userName}! Practice for 3-5 minutes and get personalized feedback
+            </p>
+          </div>
 
         {/* Progress Indicator */}
         <div className="card-solid bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200">
@@ -368,65 +434,36 @@ export default function PracticePanel({
           </div>
         )}
 
-        {/* Recording Interface */}
-        <div className="card text-center">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="audio/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          
-          {/* Main Record Button */}
-          <div className="flex justify-center mb-6">
-            <button
-              onClick={handleFileUpload}
-              disabled={recordingState === 'processing'}
-              className={`w-24 h-24 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 ${
-                recordingState === 'processing' 
-                  ? 'bg-neutral-300 cursor-not-allowed' 
-                  : 'bg-accent-500 hover:bg-accent-600 active:scale-95'
-              }`}
-            >
-              <span className="text-white text-3xl">
-                {recordingState === 'processing' ? '⏳' : '🎤'}
-              </span>
-            </button>
-          </div>
-          
-          {/* Instructions */}
-          <div className="space-y-3">
-            <p className="text-neutral-900 font-medium text-lg">
-              {recordingState === 'processing' ? 'Processing...' : 'Ready to practice?'}
-            </p>
-            <p className="text-neutral-600">
-              {recordingState === 'processing' 
-                ? 'Please wait while we transcribe and analyze your speech' 
-                : 'Upload an audio file to simulate recording and get personalized feedback'
-              }
-            </p>
+        {/* Quick Start Instructions */}
+        <div className="card bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200">
+          <div className="text-center space-y-3">
+            <h3 className="text-lg font-semibold text-neutral-900">Quick Start Guide</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🎤</span>
+                <span className="text-neutral-700">Tap the microphone above</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">⌨️</span>
+                <span className="text-neutral-700">Or press spacebar</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📝</span>
+                <span className="text-neutral-700">Get instant feedback</span>
+              </div>
+            </div>
             
             {recordingState === 'idle' && (
-              <div className="bg-primary-50 rounded-lg p-4 border border-primary-200 text-sm">
-                <p className="text-primary-700 mb-2"><strong>💡 In the full version:</strong></p>
-                <p className="text-primary-600">
-                  Tap the microphone to start recording, speak naturally for 1-3 minutes, 
-                  then tap again to stop. Works on mobile and desktop with built-in microphone support.
-                </p>
+              <div className="mt-4">
+                <button
+                  onClick={handleFileUpload}
+                  className="btn-secondary !py-2 !px-4 text-sm"
+                >
+                  📎 Upload Audio File Instead
+                </button>
               </div>
             )}
           </div>
-          
-          {/* Alternative Upload Button */}
-          {recordingState === 'idle' && (
-            <button
-              onClick={handleFileUpload}
-              className="btn-secondary mt-4 !py-3 !px-6"
-            >
-              📎 Upload Audio File
-            </button>
-          )}
         </div>
 
         {/* Error State */}
@@ -512,6 +549,7 @@ export default function PracticePanel({
               Consistent practice is the key to fluency. Every session helps you improve!
             </p>
           </div>
+        </div>
         </div>
       </div>
     </div>

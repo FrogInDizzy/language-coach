@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import WeeklyFocus from '@/components/WeeklyFocus';
 import { RealDataProgressWidget, ProgressSummary } from '@/components/ProgressWidget';
+import PersonalizedGreeting from '@/components/PersonalizedGreeting';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { mockProgressData, mockRecentMistakes } from '@/lib/mockData';
 import { Card } from '@/components/ui/Card';
 import { EmptyPanel } from '@/components/ui/EmptyPanel';
@@ -74,14 +76,6 @@ export default function DashboardPage() {
     }, 1000); // Simulate API loading time
   }, []);
 
-  const getTimeGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-  };
-
-  const userName = user?.email?.split('@')[0] || 'there';
 
   if (loading) {
     return (
@@ -131,20 +125,28 @@ export default function DashboardPage() {
 
   return (
     <main className="max-w-7xl mx-auto py-8 px-6 space-y-8">
-      {/* Modern Header */}
+      {/* Personalized Header */}
       <section className="mb-8">
-        <div className="bg-white rounded-2xl border border-gray-100 p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {getTimeGreeting()}, {userName}
-          </h1>
-          <p className="text-gray-600 mb-6">
-            {data?.weeklyGoal ? 
-              `Today's focus: ${formatCategoryName(data.weeklyGoal.focus_categories?.[0] || 'general practice')}` :
-              "Ready to improve your English?"
-            }
-          </p>
-          
-          {/* Integrated Progress Widget */}
+        <ErrorBoundary
+          fallback={
+            <div className="bg-white rounded-2xl border border-gray-100 p-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Good day!
+              </h1>
+              <p className="text-gray-600">
+                Ready to improve your English?
+              </p>
+            </div>
+          }
+        >
+          <PersonalizedGreeting 
+            showProgressWidget={true}
+            variant="dashboard"
+          />
+        </ErrorBoundary>
+        
+        {/* Progress Widget */}
+        <div className="mt-6">
           <RealDataProgressWidget 
             variant="dashboard"
             showDailyGoal={true}
