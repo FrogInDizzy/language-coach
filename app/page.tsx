@@ -87,7 +87,7 @@ export default function Home() {
           
           <div className="grid gap-8 md:grid-cols-3">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent-400 to-accent-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-medium">
+              <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-medium">
                 <span className="text-white font-bold text-xl">1</span>
               </div>
               <h4 className="text-lg font-semibold text-neutral-900 mb-3">Record your voice</h4>
@@ -126,7 +126,7 @@ export default function Home() {
           <p className="text-xl text-neutral-600 mb-8">
             Join thousands of learners who are already seeing results
           </p>
-          <Link href="/practice" className="btn-accent text-lg px-8 py-4">
+          <Link href="/practice" className="btn-accent text-lg px-8 py-4 rounded-2xl">
             Start your first session
           </Link>
         </div>
