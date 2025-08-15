@@ -116,7 +116,7 @@ export default function Sidebar({ isOpen, onClose, progressData }: SidebarProps)
           {/* Footer */}
           <div className="p-4 border-t border-gray-100">
             <div className="text-xs text-gray-400 text-center">
-              © 2024 Language Coach
+              © 2025 Language Coach
             </div>
           </div>
         </div>
