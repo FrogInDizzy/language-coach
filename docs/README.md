@@ -1,95 +1,85 @@
-# Local Development Documentation
+# Documentation
 
-> **Note**: This `docs/` directory is excluded from git commits. All files here are for local development reference only and will not be pushed to the remote repository.
+Welcome to the Language Coach App documentation! This directory contains both public documentation (committed to git) and local development files (gitignored).
 
-## Purpose
+## 📚 Public Documentation (Committed)
 
-This directory contains development documentation, reports, and analysis files generated during the development process. These files are useful for local development but are kept separate from the main repository to maintain a clean remote branch.
+These files are part of the repository and provide essential information for users and contributors:
 
-## Directory Structure
+- **[Getting Started Guide](getting-started.md)** - Complete setup instructions
+- **[Architecture Guide](architecture.md)** - System design and technical decisions  
+- **[API Documentation](api.md)** - Complete API reference with examples
+- **[Contributing Guide](contributing.md)** - Development workflow and standards
+
+## 🔒 Local Development Files (Gitignored)
+
+These directories contain local-only files for development reference:
 
 ```
 docs/
-├── README.md                    # This file
-├── accessibility-reports/      # WCAG compliance reports
-├── performance-audits/         # Performance analysis reports
-├── claude-code-logs/           # Claude Code development logs
-├── development-notes/          # Personal development notes
+├── accessibility-reports/      # WCAG compliance analysis
+├── performance-audits/         # Lighthouse and performance reports  
+├── claude-code-logs/           # AI development session logs
+├── development-notes/          # Personal notes and planning
 └── testing-reports/           # Test coverage and results
 ```
 
-## File Types
+## File Organization
 
-### Accessibility Reports
-- **WCAG 2.1 AA compliance** analysis
-- **Screen reader compatibility** testing
-- **Color contrast** validation
-- **Keyboard navigation** testing results
+### What Gets Committed
+✅ **Core documentation** - Setup, architecture, API, contributing guides  
+✅ **Assets** - Diagrams, screenshots, and visual aids  
+✅ **Templates** - Issue templates, PR templates  
 
-### Performance Audits
-- **Lighthouse reports** with detailed metrics
-- **Core Web Vitals** measurements
-- **Bundle size analysis** and optimization recommendations
-- **Database query performance** analysis
-
-### Claude Code Logs
-- **Feature development** conversation logs
-- **Code review** discussions
-- **Architecture decisions** and rationale
-- **Troubleshooting** sessions
-
-### Development Notes
-- **Personal reminders** and TODO items
-- **Feature specifications** and requirements
-- **API design decisions** and iterations
-- **Database schema** evolution notes
-
-### Testing Reports
-- **Unit test coverage** reports
-- **Integration test** results
-- **E2E test** scenarios and outcomes
-- **Performance test** benchmarks
-
-## Usage Guidelines
-
-1. **Add files freely** - All content here stays local
-2. **Organize by category** - Use appropriate subdirectories
-3. **Include timestamps** - Help track development progress
-4. **Reference from code** - Link to relevant docs in comments
-5. **Keep sensitive data here** - Perfect for API keys, test credentials
-
-## Integration with Claude Code
-
-Claude Code automatically generates various analysis files. Configure Claude Code to save them here:
-
-```bash
-# In your Claude Code settings
-export CLAUDE_DOCS_PATH="./docs/"
-```
-
-Common generated files:
-- `accessibility-compliance-report.md`
-- `performance-audit-yyyy-mm-dd.md`
-- `security-analysis.md`
-- `code-quality-report.md`
-
-## Git Status
-
-✅ **Excluded from git** - Files here won't appear in `git status`  
-✅ **No accidental commits** - `.gitignore` prevents inclusion  
-✅ **Clean remote branch** - Repository stays focused on code  
+### What Stays Local  
+🔒 **Development logs** - Claude Code conversation histories  
+🔒 **Analysis reports** - Accessibility, performance, security audits  
+🔒 **Personal notes** - TODO lists, research, planning documents  
+🔒 **Test artifacts** - Coverage reports, test screenshots  
 
 ## Quick Access
 
-Create aliases for quick access:
+Create shell aliases for quick navigation:
 
 ```bash
-# Add to your shell profile
+# Add to your .bashrc or .zshrc
 alias docs="cd /path/to/language-coach-app/docs"
-alias adocs="open /path/to/language-coach-app/docs/accessibility-reports"
-alias pdocs="open /path/to/language-coach-app/docs/performance-audits"
+alias ldocs="open /path/to/language-coach-app/docs"
 ```
+
+## Usage Guidelines
+
+### For Contributors
+1. **Read public docs first** - Start with getting-started.md
+2. **Update docs with changes** - Keep documentation current
+3. **Use local folders freely** - Perfect for notes and analysis
+
+### For Development
+1. **Save Claude Code outputs** to appropriate local subdirectories
+2. **Document decisions** in development-notes/
+3. **Track performance** in performance-audits/
+4. **Keep sensitive data** in local folders only
+
+## Git Integration
+
+The documentation setup uses selective gitignore patterns:
+
+```gitignore
+# Exclude local development folders
+docs/accessibility-reports/
+docs/performance-audits/
+docs/claude-code-logs/
+docs/development-notes/
+docs/testing-reports/
+
+# Include public documentation
+!docs/
+!docs/*.md
+!docs/assets/
+```
+
+This ensures clean public documentation while providing space for comprehensive local development files.
 
 ---
 
-*Last updated: $(date)*
+*Last updated: August 15, 2025*
