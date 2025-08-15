@@ -262,10 +262,79 @@ export default function PracticePanel({
     }
   };
 
+  // Mic check state
+  const [micPermission, setMicPermission] = useState<'checking' | 'granted' | 'denied' | 'unknown'>('unknown');
+  const [environmentCheck, setEnvironmentCheck] = useState<'good' | 'noisy' | 'unknown'>('unknown');
+
+  // Check microphone permission and environment on component mount
+  useEffect(() => {
+    const checkMicPermission = async () => {
+      setMicPermission('checking');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setMicPermission('granted');
+        
+        // Simple noise level check
+        const audioContext = new AudioContext();
+        const analyser = audioContext.createAnalyser();
+        const microphone = audioContext.createMediaStreamSource(stream);
+        microphone.connect(analyser);
+        
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+        
+        setEnvironmentCheck(average < 50 ? 'good' : 'noisy');
+        
+        // Clean up
+        stream.getTracks().forEach(track => track.stop());
+        audioContext.close();
+      } catch (error) {
+        setMicPermission('denied');
+        setEnvironmentCheck('unknown');
+      }
+    };
+
+    checkMicPermission();
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Sticky Record Button - Above the fold */}
+      {/* Live Preparation Status Bar */}
       <div className="sticky top-4 z-20 mb-8">
+        <div className="flex justify-center mb-4">
+          <div className="bg-white/95 backdrop-blur-lg border border-neutral-200 rounded-2xl p-4 shadow-lg max-w-lg w-full">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${
+                    micPermission === 'granted' ? 'bg-green-500' : 
+                    micPermission === 'checking' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'
+                  }`}></span>
+                  <span className="text-neutral-700">
+                    {micPermission === 'granted' ? 'Mic ready' : 
+                     micPermission === 'checking' ? 'Checking mic...' : 'Mic access needed'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${
+                    environmentCheck === 'good' ? 'bg-green-500' : 
+                    environmentCheck === 'noisy' ? 'bg-yellow-500' : 'bg-neutral-300'
+                  }`}></span>
+                  <span className="text-neutral-700">
+                    {environmentCheck === 'good' ? 'Quiet space' : 
+                     environmentCheck === 'noisy' ? 'Background noise' : 'Environment check'}
+                  </span>
+                </div>
+              </div>
+              <div className="text-neutral-500 font-medium">
+                3-5 min • English (US)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Record Button */}
         <div className="flex justify-center">
           <div className="bg-white/95 backdrop-blur-lg border border-neutral-200 rounded-3xl p-6 shadow-lg">
             <input
@@ -276,13 +345,12 @@ export default function PracticePanel({
               className="hidden"
             />
             
-            {/* Main Record Button */}
             <div className="text-center space-y-4">
               <button
                 onClick={handleFileUpload}
-                disabled={recordingState === 'processing'}
+                disabled={recordingState === 'processing' || micPermission !== 'granted'}
                 className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 transform hover:scale-105 focus:scale-105 focus:outline-none focus:ring-4 focus:ring-accent-200 ${
-                  recordingState === 'processing' 
+                  recordingState === 'processing' || micPermission !== 'granted'
                     ? 'bg-neutral-300 cursor-not-allowed' 
                     : 'bg-accent-500 hover:bg-accent-600 active:scale-95'
                 }`}
@@ -294,12 +362,15 @@ export default function PracticePanel({
               
               <div className="space-y-2">
                 <p className="text-neutral-900 font-semibold text-lg">
-                  {recordingState === 'processing' ? 'Processing...' : 'Ready to practice?'}
+                  {recordingState === 'processing' ? 'Processing...' : 
+                   micPermission !== 'granted' ? 'Enable microphone to start' : 'Ready to practice?'}
                 </p>
                 <p className="text-sm text-neutral-600">
                   {recordingState === 'processing' 
                     ? 'Please wait while we process your speech' 
-                    : 'Tap to start or press spacebar'
+                    : micPermission !== 'granted' 
+                      ? 'Click to grant microphone permission'
+                      : 'Tap to start or press spacebar'
                   }
                 </p>
                 {recordingState === 'recording' && (
@@ -387,23 +458,7 @@ export default function PracticePanel({
             </button>
           </div>
           
-          <p className="text-neutral-900 text-lg leading-relaxed mb-4">{selectedPrompt.text}</p>
-          
-          {/* Prompt-specific tips */}
-          <div className="bg-accent-50 rounded-lg p-4 border border-accent-200">
-            <h4 className="font-medium text-neutral-900 mb-2 flex items-center gap-2">
-              <span>💡</span>
-              Tips for this prompt:
-            </h4>
-            <ul className="space-y-1 text-sm text-neutral-700">
-              {selectedPrompt.tips.map((tip, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span className="text-accent-500 mt-1">•</span>
-                  <span>{tip}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <p className="text-neutral-900 text-lg leading-relaxed">{selectedPrompt.text}</p>
         </div>
 
         {/* Prompt Selector Dropdown */}
@@ -434,36 +489,55 @@ export default function PracticePanel({
           </div>
         )}
 
-        {/* Quick Start Instructions */}
-        <div className="card bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200">
-          <div className="text-center space-y-3">
-            <h3 className="text-lg font-semibold text-neutral-900">Quick Start Guide</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🎤</span>
-                <span className="text-neutral-700">Tap the microphone above</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">⌨️</span>
-                <span className="text-neutral-700">Or press spacebar</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">📝</span>
-                <span className="text-neutral-700">Get instant feedback</span>
-              </div>
-            </div>
-            
-            {recordingState === 'idle' && (
-              <div className="mt-4">
-                <button
-                  onClick={handleFileUpload}
-                  className="btn-secondary !py-2 !px-4 text-sm"
-                >
-                  📎 Upload Audio File Instead
-                </button>
-              </div>
-            )}
+        {/* Unified Tips Section */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
+            <span>💡</span>
+            Practice Guide
+          </h3>
+          
+          {/* Prompt-specific tips */}
+          <div className="bg-accent-50 rounded-lg p-4 border border-accent-200 mb-4">
+            <h4 className="font-medium text-neutral-900 mb-3 flex items-center gap-2">
+              <span>🎯</span>
+              For this prompt:
+            </h4>
+            <ul className="space-y-2 text-sm text-neutral-700">
+              {selectedPrompt.tips.map((tip, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="text-accent-500 mt-1">•</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
           </div>
+
+          {/* General recording tips */}
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <h4 className="font-medium text-neutral-900 mb-3 flex items-center gap-2">
+              <span>🎙️</span>
+              Recording tips:
+            </h4>
+            <ul className="space-y-2 text-sm text-neutral-700">
+              {CONTEXTUAL_TIPS.recording.slice(0, 2).map((tip, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="text-blue-500 mt-1">•</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {recordingState === 'idle' && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={handleFileUpload}
+                className="btn-secondary !py-2 !px-4 text-sm"
+              >
+                📎 Upload Audio File Instead
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Error State */}
@@ -486,47 +560,13 @@ export default function PracticePanel({
         )}
       </div>
 
-      {/* Tips Sidebar */}
+      {/* Session Info Sidebar */}
       <div className="space-y-6">
-        <div className="card-solid">
-          <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
-            <span>🎯</span>
-            Practice Tips
-          </h3>
-          
-          {/* Tip Categories */}
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {Object.keys(CONTEXTUAL_TIPS).map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedTipCategory(category as keyof typeof CONTEXTUAL_TIPS)}
-                className={`text-xs py-2 px-3 rounded-lg transition-colors ${
-                  selectedTipCategory === category
-                    ? 'bg-accent-100 text-accent-700 border border-accent-200'
-                    : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                }`}
-              >
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </button>
-            ))}
-          </div>
-          
-          {/* Tips List */}
-          <div className="space-y-3">
-            {CONTEXTUAL_TIPS[selectedTipCategory].map((tip, idx) => (
-              <div key={idx} className="flex gap-2">
-                <span className="text-accent-500 mt-1 text-sm">•</span>
-                <span className="text-sm text-neutral-700 leading-relaxed">{tip}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Stats */}
+        {/* Session Progress */}
         <div className="card-solid bg-gradient-to-br from-primary-50 to-accent-50 border border-primary-200">
           <h4 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
             <span>📈</span>
-            Today's Goal
+            Today's Progress
           </h4>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -540,13 +580,13 @@ export default function PracticePanel({
           </div>
         </div>
 
-        {/* Encouragement Card */}
+        {/* Quick Encouragement */}
         <div className="card-solid bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200">
           <div className="text-center">
             <div className="text-2xl mb-2">🌟</div>
-            <h4 className="font-semibold text-neutral-900 mb-2">You're doing great!</h4>
+            <h4 className="font-semibold text-neutral-900 mb-2">Keep it up!</h4>
             <p className="text-sm text-neutral-600">
-              Consistent practice is the key to fluency. Every session helps you improve!
+              Every practice session builds your confidence. You're making great progress!
             </p>
           </div>
         </div>
