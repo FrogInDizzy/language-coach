@@ -13,6 +13,7 @@ import { EmptyPanel } from '@/components/ui/EmptyPanel';
 import { FocusAreasEmptyState, TrendsEmptyState, AccuracyEmptyState } from '@/components/ui/EmptyState';
 import { useFocusPractice } from '@/hooks/useFocusPractice';
 import Link from 'next/link';
+import { FadeInSection, SlideInSection, StaggerContainer, StaggerItem } from '@/components/PageTransition';
 
 interface TopMistake { category: string; count: number; }
 interface ErrorRate { date: string; rate: number; }
@@ -130,7 +131,8 @@ export default function DashboardPage() {
   return (
     <main className="max-w-7xl mx-auto py-8 px-6 space-y-8">
       {/* Personalized Header */}
-      <section className="mb-8">
+      <FadeInSection delay={0.1}>
+        <section className="mb-8">
         <ErrorBoundary
           fallback={
             <div className="bg-white rounded-2xl border border-gray-100 p-8">
@@ -156,10 +158,12 @@ export default function DashboardPage() {
             showDailyGoal={true}
           />
         </div>
-      </section>
+        </section>
+      </FadeInSection>
 
       {/* Quick Actions */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <SlideInSection direction="up" delay={0.2}>
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Link 
           href="/practice" 
           className="group bg-white rounded-2xl border border-gray-100 p-6 hover:border-green-200 transition-all duration-150 cursor-pointer"
@@ -207,10 +211,12 @@ export default function DashboardPage() {
           </div>
           <div className="text-amber-600 text-sm font-medium">Configure →</div>
         </Link>
-      </section>
+        </section>
+      </SlideInSection>
 
       {/* Daily Quest Panel */}
-      <section>
+      <FadeInSection delay={0.3}>
+        <section>
         <DailyQuestPanel 
           variant="dashboard"
           onQuestComplete={(questId, xpEarned) => {
@@ -220,17 +226,21 @@ export default function DashboardPage() {
             console.log(`All quests complete! +${totalXp} XP, Shield: ${streakShield}`);
           }}
         />
-      </section>
+        </section>
+      </FadeInSection>
 
       {data && (
         <>
           {/* Weekly Focus */}
-          <section>
+          <SlideInSection direction="left" delay={0.4}>
+            <section>
             <WeeklyFocus goal={data.weeklyGoal} />
-          </section>
+            </section>
+          </SlideInSection>
 
           {/* Focus Areas - Full Width Section */}
-          <section className="mb-8">
+          <FadeInSection delay={0.5}>
+            <section className="mb-8">
             <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm">
               <div className="p-6 pb-4 border-b border-neutral-100">
                 <div className="flex items-center justify-between">
@@ -254,7 +264,7 @@ export default function DashboardPage() {
               <div className="p-6 pt-5">
               
               {data.topMistakes.length > 0 ? (
-                <div className="space-y-3">
+                <StaggerContainer className="space-y-3">
                   {data.topMistakes.slice(0, 3).map((mistake, idx) => {
                     const practiceMetrics = getCategoryMetrics(mistake.category);
                     const categoryIcon = mistake.category === 'articles' ? '📰' :
@@ -263,7 +273,8 @@ export default function DashboardPage() {
                                        mistake.category === 'pluralization' ? '📊' : '💬';
                     
                     return (
-                      <div key={idx} className="group bg-white rounded-xl border border-neutral-200 hover:border-amber-300 focus-card-hover overflow-hidden">
+                      <StaggerItem key={idx}>
+                        <div className="group bg-white rounded-xl border border-neutral-200 hover:border-amber-300 focus-card-hover overflow-hidden">
                         {/* Header Section */}
                         <div className="p-4 pb-3">
                           <div className="flex items-start justify-between mb-3">
@@ -330,10 +341,11 @@ export default function DashboardPage() {
                             </Link>
                           </div>
                         </div>
-                      </div>
+                        </div>
+                      </StaggerItem>
                     );
                   })}
-                </div>
+                </StaggerContainer>
               ) : (
                 <FocusAreasEmptyState size="small" />
               )}
@@ -352,12 +364,15 @@ export default function DashboardPage() {
               </div>
               </div>
             </div>
-          </section>
+            </section>
+          </FadeInSection>
 
           {/* Enhanced Stats Grid */}
-          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <StaggerContainer>
+            <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* Progress Trends */}
-            <div className="card-solid border-l-4 border-l-emerald-400">
+            <StaggerItem>
+              <div className="card-solid border-l-4 border-l-emerald-400">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center shadow-sm">
                   <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -403,10 +418,12 @@ export default function DashboardPage() {
               ) : (
                 <TrendsEmptyState size="small" />
               )}
-            </div>
+              </div>
+            </StaggerItem>
 
             {/* Accuracy Score */}
-            <div className="card-solid border-l-4 border-l-primary-400">
+            <StaggerItem>
+              <div className="card-solid border-l-4 border-l-primary-400">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center shadow-sm">
                   <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -460,11 +477,14 @@ export default function DashboardPage() {
               ) : (
                 <AccuracyEmptyState size="small" />
               )}
-            </div>
-          </section>
+              </div>
+            </StaggerItem>
+            </section>
+          </StaggerContainer>
 
           {/* AI Coach Insight */}
-          <section>
+          <FadeInSection delay={0.6}>
+            <section>
             <div className="card-solid bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -483,7 +503,8 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </FadeInSection>
         </>
       )}
     </main>

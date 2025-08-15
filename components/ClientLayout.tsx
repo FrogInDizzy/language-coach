@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth';
 import AuthForm from './AuthForm';
 import Sidebar from './Sidebar';
 import { useProgress } from '@/hooks/useProgress';
+import PageTransition from './PageTransition';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
@@ -120,7 +121,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
         {/* Main content */}
         <main className="min-h-screen bg-gray-50">
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
         </main>
       </div>
     </div>

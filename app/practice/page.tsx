@@ -16,6 +16,7 @@ import MistakeCard from '@/components/MistakeCard';
 import SessionCelebrationModal from '@/components/SessionCelebrationModal';
 import { updateQuestsFromSession, SessionQuestUpdate } from '@/lib/questIntegration';
 import Link from 'next/link';
+import { FadeInSection, SlideInSection, StaggerContainer, StaggerItem } from '@/components/PageTransition';
 
 export default function PracticePage() {
   const { user } = useAuth();
@@ -240,7 +241,8 @@ export default function PracticePage() {
     return (
       <main className="max-w-4xl mx-auto py-8 px-4 space-y-6">
         {/* Success Header with XP Results */}
-        <div className="text-center">
+        <FadeInSection>
+          <div className="text-center">
           <div className="text-4xl mb-2">🎉</div>
           <h1 className="text-2xl font-bold text-neutral-900 mb-2 font-display">Nice work, {userName}!</h1>
           <p className="text-neutral-600">Here's your personalized feedback</p>
@@ -298,9 +300,11 @@ export default function PracticePage() {
             </div>
           )}
         </div>
+        </FadeInSection>
 
         {/* Transcript */}
-        <div className="card">
+        <SlideInSection direction="up" delay={0.2}>
+          <div className="card">
           <h2 className="text-lg font-semibold text-neutral-900 mb-3 flex items-center gap-2">
             <span>📝</span>
             Your Speech
@@ -308,22 +312,26 @@ export default function PracticePage() {
           <div className="bg-gray-50 rounded-lg p-4">
             <TranscriptWithHighlights transcript={transcript} mistakes={mistakes} />
           </div>
-        </div>
+          </div>
+        </SlideInSection>
 
         {/* Feedback Section */}
         {mistakes.length > 0 ? (
-          <div className="space-y-4">
+          <FadeInSection delay={0.3}>
+            <div className="space-y-4">
             <h3 className="text-lg font-semibold text-neutral-900 flex items-center gap-2">
               <span>💡</span>
               Focus Areas ({mistakes.length} found)
             </h3>
             
             {/* Show only top 3 mistakes to avoid overwhelm */}
-            <div className="space-y-4">
+            <StaggerContainer className="space-y-4">
               {mistakes.slice(0, 3).map((mistake, idx) => (
-                <MistakeCard key={idx} mistake={mistake} />
+                <StaggerItem key={idx}>
+                  <MistakeCard mistake={mistake} />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
             
             {mistakes.length > 3 && (
               <div className="card bg-accent-100/50 border-accent-200">
@@ -345,9 +353,11 @@ export default function PracticePage() {
                 </div>
               </div>
             </div>
-          </div>
+            </div>
+          </FadeInSection>
         ) : (
-          <div className="card bg-primary-50 border-primary-200 text-center">
+          <FadeInSection delay={0.3}>
+            <div className="card bg-primary-50 border-primary-200 text-center">
             <span className="text-4xl mb-2 block">🏆</span>
             <h3 className="text-lg font-semibold text-neutral-900 mb-2">Perfect Session!</h3>
             <p className="text-neutral-600 mb-4">
@@ -356,11 +366,13 @@ export default function PracticePage() {
             <div className="text-sm text-neutral-600">
               <strong>+{sessionResult?.xp_earned || 50} XP</strong> • You're on fire!
             </div>
-          </div>
+            </div>
+          </FadeInSection>
         )}
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <SlideInSection direction="up" delay={0.4}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button 
             onClick={resetSession}
             className="btn-accent flex items-center gap-2"
@@ -372,7 +384,8 @@ export default function PracticePage() {
             <span>📊</span>
             View Progress
           </Link>
-        </div>
+          </div>
+        </SlideInSection>
       </main>
     );
   }

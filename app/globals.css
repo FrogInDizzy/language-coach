@@ -707,12 +707,108 @@
     }
   }
 
+  /* Page transition animations */
+  .page-enter {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  
+  .page-enter-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  
+  .page-exit {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  
+  .page-exit-active {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  /* Navigation link hover animations */
+  .nav-link {
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-radius: 1px;
+    transition: width 0.3s ease;
+  }
+
+  .nav-link:hover::after,
+  .nav-link.active::after {
+    width: 100%;
+  }
+
+  /* Enhanced card hover animations */
+  .card-animated {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-animated:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Interactive button animations */
+  .btn-interactive {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -8px rgba(34, 197, 94, 0.4);
+  }
+
+  .btn-interactive:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px -5px rgba(34, 197, 94, 0.4);
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Enhanced skeleton loading */
+  .skeleton-enhanced {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-wave 1.5s infinite;
+  }
+
+  @keyframes loading-wave {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
   /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
     * {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+    }
+    
+    html {
+      scroll-behavior: auto;
     }
   }
 

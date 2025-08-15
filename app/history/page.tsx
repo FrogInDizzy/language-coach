@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { HistoryEmptyState } from '@/components/ui/EmptyState';
+import { FadeInSection, SlideInSection, StaggerContainer, StaggerItem } from '@/components/PageTransition';
 
 // Enhanced interfaces for better data structure
 interface Mistake {
@@ -237,9 +238,10 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="max-w-6xl mx-auto py-8 px-6 space-y-8 animate-in">
+    <main className="max-w-6xl mx-auto py-8 px-6 space-y-8">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+      <FadeInSection>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold text-neutral-900 mb-2 font-display">Practice History</h1>
           <p className="text-neutral-600">
@@ -287,7 +289,8 @@ export default function HistoryPage() {
             <option value="duration">Longest duration</option>
           </select>
         </div>
-      </div>
+        </div>
+      </FadeInSection>
 
       {/* Sessions Grid */}
       {filteredSamples.length === 0 ? (
@@ -307,13 +310,14 @@ export default function HistoryPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSamples.map((sample) => (
-            <div
-              key={sample.id}
-              className="card cursor-pointer hover:shadow-medium transition-all duration-200 border-2 border-transparent hover:border-primary-200"
-              onClick={() => setSelectedSession(sample)}
-            >
+        <StaggerContainer>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredSamples.map((sample) => (
+            <StaggerItem key={sample.id}>
+              <div
+                className="card cursor-pointer hover:shadow-medium transition-all duration-200 border-2 border-transparent hover:border-primary-200"
+                onClick={() => setSelectedSession(sample)}
+              >
               {/* Session Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -380,9 +384,11 @@ export default function HistoryPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-            </div>
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+          </div>
+        </StaggerContainer>
       )}
 
       {/* Session Detail Modal */}
