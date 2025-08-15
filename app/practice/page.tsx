@@ -242,7 +242,7 @@ export default function PracticePage() {
         {/* Success Header with XP Results */}
         <div className="text-center">
           <div className="text-4xl mb-2">🎉</div>
-          <h1 className="text-2xl font-bold text-neutral-900 mb-2 font-display">Great job, {userName}!</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-2 font-display">Nice work, {userName}!</h1>
           <p className="text-neutral-600">Here's your personalized feedback</p>
           
           {/* XP and Level Progress */}
@@ -272,7 +272,7 @@ export default function PracticePage() {
                 </p>
               ) : (
                 <p className="text-sm text-accent-700">
-                  Keep practicing to earn more XP and level up!
+                  Keep going—you're building momentum!
                 </p>
               )}
               
@@ -340,7 +340,7 @@ export default function PracticePage() {
                 <div>
                   <h4 className="font-semibold text-neutral-900 mb-1">Progress Made!</h4>
                   <p className="text-sm text-neutral-600">
-                    You're actively improving your English! Each practice session helps you identify and fix common mistakes.
+                    Every rep counts! You're training your brain to speak more naturally.
                   </p>
                 </div>
               </div>
@@ -354,7 +354,7 @@ export default function PracticePage() {
               No grammar mistakes detected in your speech. Excellent work!
             </p>
             <div className="text-sm text-neutral-600">
-              <strong>+{sessionResult?.xp_earned || 50} XP</strong> • Keep up the great work!
+              <strong>+{sessionResult?.xp_earned || 50} XP</strong> • You're on fire!
             </div>
           </div>
         )}
@@ -366,7 +366,7 @@ export default function PracticePage() {
             className="btn-accent flex items-center gap-2"
           >
             <span>🎤</span>
-            Practice Another Prompt
+            Practice another 3-min
           </button>
           <Link href="/dashboard" className="btn-secondary flex items-center gap-2 justify-center">
             <span>📊</span>

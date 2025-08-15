@@ -80,13 +80,13 @@ const getDefaultActions = (type: EmptyStateType): ActionButton[] => {
   switch (type) {
     case 'practice':
       return [
-        { label: "Start First Session", href: "/practice", variant: "primary" },
+        { label: "Start a 3-min session", href: "/practice", variant: "primary" },
         { label: "Learn More", href: "/dashboard", variant: "secondary" }
       ];
       
     case 'history':
       return [
-        { label: "Start Practicing", href: "/practice", variant: "primary" },
+        { label: "Start a 3-min session", href: "/practice", variant: "primary" },
         { label: "Go to Dashboard", href: "/dashboard", variant: "secondary" }
       ];
       
@@ -95,12 +95,12 @@ const getDefaultActions = (type: EmptyStateType): ActionButton[] => {
     case 'trends':
     case 'accuracy':
       return [
-        { label: "Start First Session", href: "/practice", variant: "primary" }
+        { label: "Start a 3-min session", href: "/practice", variant: "primary" }
       ];
       
     default:
       return [
-        { label: "Get Started", href: "/practice", variant: "primary" }
+        { label: "Start a 3-min session", href: "/practice", variant: "primary" }
       ];
   }
 };

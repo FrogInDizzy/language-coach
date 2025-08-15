@@ -169,11 +169,11 @@ export default function DashboardPage() {
               <span className="text-2xl">🎤</span>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Start Practice</h3>
-              <p className="text-sm text-gray-600">5-10 minute session</p>
+              <h3 className="font-semibold text-gray-900">Start 3-min session</h3>
+              <p className="text-sm text-gray-600">Quick focused practice</p>
             </div>
           </div>
-          <div className="text-green-600 text-sm font-medium">Begin now →</div>
+          <div className="text-green-600 text-sm font-medium">Let's go →</div>
         </Link>
 
         <Link 
@@ -323,7 +323,7 @@ export default function DashboardPage() {
                               <div className="w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center text-amber-900 text-xs">
                                 {categoryIcon}
                               </div>
-                              <span>{practiceMetrics.sessions > 0 ? 'Practice Again' : 'Start 2-Min Drill'}</span>
+                              <span>{practiceMetrics.sessions > 0 ? 'Practice again' : 'Start 2-min drill'}</span>
                               <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                               </svg>

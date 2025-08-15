@@ -333,7 +333,7 @@ export default function PracticePanel({
           Daily Speaking Practice
         </h1>
         <p className="text-lg text-neutral-600">
-          Hello {userName}! Choose how you'd like to practice today
+          Ready to level up your English, {userName}? Pick your practice style
         </p>
         
         {/* Session Info Bar */}
@@ -353,7 +353,7 @@ export default function PracticePanel({
           </div>
           <div className="status-indicator status-info">
             <span className="text-sm font-medium" aria-hidden="true">⏱️</span>
-            <span className="text-sm font-medium">3-5 min session</span>
+            <span className="text-sm font-medium">3-5 min focused session</span>
           </div>
           <div className="status-indicator status-neutral">
             <span className="text-sm font-medium" aria-hidden="true">🌐</span>
@@ -381,13 +381,13 @@ export default function PracticePanel({
             </div>
             <h3 className="text-xl font-semibold text-neutral-900 mb-2">
               {recordingState === 'recording' ? 'Recording...' :
-               recordingState === 'processing' ? 'Processing...' : 'Start Recording'}
+               recordingState === 'processing' ? 'Processing...' : 'Start Session'}
             </h3>
             <p className="text-neutral-600">
               {recordingState === 'recording' ? `Recording time: ${formatTime(recordingTime)}` :
                recordingState === 'processing' ? 'Transcribing with Whisper AI' :
                micPermission !== 'granted' ? 'Enable microphone to start' :
-               'Record yourself speaking or press spacebar'}
+               'Speak naturally or hit spacebar to begin'}
             </p>
           </div>
           
@@ -401,7 +401,7 @@ export default function PracticePanel({
               >
                 <span className="flex items-center justify-center gap-2">
                   <span aria-hidden="true">🎤</span>
-                  Start Recording
+                  Start 3-min session
                 </span>
               </button>
             )}
@@ -435,7 +435,7 @@ export default function PracticePanel({
               </button>
             )}
             <p className="text-sm text-neutral-600 font-medium">
-              Press spacebar to quickly start recording
+              Hit spacebar for instant recording
             </p>
           </div>
         </article>
@@ -476,11 +476,11 @@ export default function PracticePanel({
             >
               <span className="flex items-center justify-center gap-2">
                 <span aria-hidden="true">📁</span>
-                Choose Audio File
+                Upload your recording
               </span>
             </button>
             <p className="text-sm text-neutral-600 font-medium">
-              Supports MP3, WAV, M4A, and other audio formats
+              MP3, WAV, M4A formats supported
             </p>
           </div>
         </article>
@@ -512,7 +512,7 @@ export default function PracticePanel({
               <span className="text-lg">💭</span>
             </div>
             <div>
-              <h3 id="current-prompt-heading" className="font-semibold text-neutral-900">Today's Practice Prompt</h3>
+              <h3 id="current-prompt-heading" className="font-semibold text-neutral-900">Today's Challenge</h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className={`badge ${getDifficultyColor(selectedPrompt.difficulty)}`} role="status" aria-label={`Difficulty level: ${selectedPrompt.difficulty}`}>
                   {selectedPrompt.difficulty}

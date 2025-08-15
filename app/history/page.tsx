@@ -203,7 +203,7 @@ export default function HistoryPage() {
           size="large"
           description="Start practicing to build a history of progress that will motivate and inspire your learning journey. Every session becomes part of your success story."
           actions={[
-            { label: "Start First Session", href: "/practice", variant: "primary" },
+            { label: "Start a 3-min session", href: "/practice", variant: "primary" },
             { label: "Go to Dashboard", href: "/dashboard", variant: "secondary" }
           ]}
         />
@@ -475,7 +475,7 @@ export default function HistoryPage() {
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t border-neutral-200">
                 <Link href="/practice" className="btn-accent flex-1" onClick={() => setSelectedSession(null)}>
-                  Practice Again
+                  Practice another 3-min
                 </Link>
                 <button 
                   onClick={() => setSelectedSession(null)}

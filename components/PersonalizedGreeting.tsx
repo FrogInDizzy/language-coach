@@ -104,7 +104,7 @@ export default function PersonalizedGreeting({
   const getEncouragingMessage = () => {
     if (isNewUser) {
       return {
-        message: "Let's start your journey to fluent English speaking!",
+        message: "Time to unlock your English speaking confidence!",
         icon: "🌟",
         type: "welcome"
       };
@@ -116,9 +116,9 @@ export default function PersonalizedGreeting({
     if (!hasRecentActivity) {
       const welcomeBackMessages = [
         { message: "Ready to continue your English learning journey?", icon: "🚀" },
-        { message: "Let's pick up where you left off with some practice", icon: "📚" },
+        { message: "Ready for a quick practice session?", icon: "📚" },
         { message: "Your next breakthrough is just one session away", icon: "💡" },
-        { message: "Every expert was once a beginner. Keep practicing!", icon: "🌱" }
+        { message: "Every expert was once a beginner—your turn!", icon: "🌱" }
       ];
       
       return {
@@ -128,8 +128,8 @@ export default function PersonalizedGreeting({
     }
 
     const encouragingMessages = [
-      { message: "Every practice session brings you closer to fluency", icon: "🎯" },
-      { message: "Consistency is the key to mastering English", icon: "📈" },
+      { message: "Every rep brings you closer to fluency", icon: "🎯" },
+      { message: "You're building English fluency one rep at a time", icon: "📈" },
       { message: "Your dedication to practice is paying off", icon: "💪" },
       { message: "Keep building your speaking confidence", icon: "🗣️" }
     ];
