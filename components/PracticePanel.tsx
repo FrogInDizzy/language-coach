@@ -159,11 +159,14 @@ export default function PracticePanel({
 }: PracticePanelProps) {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt>(currentPrompt || getDailyPrompt());
-  const [selectedTipCategory, setSelectedTipCategory] = useState<keyof typeof CONTEXTUAL_TIPS>('recording');
   const [recordingTime, setRecordingTime] = useState(0);
   const [showPromptSelector, setShowPromptSelector] = useState(false);
+  const [micPermission, setMicPermission] = useState<'checking' | 'granted' | 'denied' | 'unknown'>('unknown');
 
   const userName = user?.email?.split('@')[0] || 'there';
 
@@ -187,16 +190,19 @@ export default function PracticePanel({
     fileInputRef.current?.click();
   };
 
-  // Keyboard shortcut for spacebar
+  // Keyboard shortcut for spacebar to start/stop recording
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
-    // Only trigger if not typing in an input field and recording is idle
+    // Only trigger if not typing in an input field
     if (event.code === 'Space' && 
-        recordingState === 'idle' && 
         !['INPUT', 'TEXTAREA', 'BUTTON'].includes((event.target as HTMLElement)?.tagName)) {
       event.preventDefault();
-      handleFileUpload();
+      if (recordingState === 'idle' && micPermission === 'granted') {
+        startRecording();
+      } else if (recordingState === 'recording') {
+        stopRecording();
+      }
     }
-  }, [recordingState, handleFileUpload]);
+  }, [recordingState, micPermission]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -262,336 +268,343 @@ export default function PracticePanel({
     }
   };
 
-  // Mic check state
-  const [micPermission, setMicPermission] = useState<'checking' | 'granted' | 'denied' | 'unknown'>('unknown');
-  const [environmentCheck, setEnvironmentCheck] = useState<'good' | 'noisy' | 'unknown'>('unknown');
-
-  // Check microphone permission and environment on component mount
+  // Check microphone permission
   useEffect(() => {
     const checkMicPermission = async () => {
       setMicPermission('checking');
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         setMicPermission('granted');
-        
-        // Simple noise level check
-        const audioContext = new AudioContext();
-        const analyser = audioContext.createAnalyser();
-        const microphone = audioContext.createMediaStreamSource(stream);
-        microphone.connect(analyser);
-        
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
-        
-        setEnvironmentCheck(average < 50 ? 'good' : 'noisy');
-        
-        // Clean up
         stream.getTracks().forEach(track => track.stop());
-        audioContext.close();
       } catch (error) {
         setMicPermission('denied');
-        setEnvironmentCheck('unknown');
       }
     };
-
     checkMicPermission();
   }, []);
 
+  // Start recording function
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const file = new File([blob], 'recording.webm', { type: 'audio/webm' });
+        setRecordingState('processing');
+        onRecording(file);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setRecordingState('recording');
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      setMicPermission('denied');
+    }
+  };
+
+  // Stop recording function
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && recordingState === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Live Preparation Status Bar */}
-      <div className="sticky top-4 z-20 mb-8">
-        <div className="flex justify-center mb-4">
-          <div className="bg-white/95 backdrop-blur-lg border border-neutral-200 rounded-2xl p-4 shadow-lg max-w-lg w-full">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${
-                    micPermission === 'granted' ? 'bg-green-500' : 
-                    micPermission === 'checking' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'
-                  }`}></span>
-                  <span className="text-neutral-700">
-                    {micPermission === 'granted' ? 'Mic ready' : 
-                     micPermission === 'checking' ? 'Checking mic...' : 'Mic access needed'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${
-                    environmentCheck === 'good' ? 'bg-green-500' : 
-                    environmentCheck === 'noisy' ? 'bg-yellow-500' : 'bg-neutral-300'
-                  }`}></span>
-                  <span className="text-neutral-700">
-                    {environmentCheck === 'good' ? 'Quiet space' : 
-                     environmentCheck === 'noisy' ? 'Background noise' : 'Environment check'}
-                  </span>
-                </div>
-              </div>
-              <div className="text-neutral-500 font-medium">
-                3-5 min • English (US)
-              </div>
-            </div>
+    <main className="max-w-5xl mx-auto px-4 py-8" role="main" aria-label="Daily Speaking Practice">
+      {/* Skip Link */}
+      <a href="#recording-cards" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-accent-600 text-white px-4 py-2 rounded-lg z-50">
+        Skip to recording options
+      </a>
+      
+      {/* Header */}
+      <header className="text-center mb-8" role="banner">
+        <h1 className="text-3xl font-bold text-neutral-900 mb-3">
+          Daily Speaking Practice
+        </h1>
+        <p className="text-lg text-neutral-600">
+          Hello {userName}! Choose how you'd like to practice today
+        </p>
+        
+        {/* Session Info Bar */}
+        <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
+          <div className={`status-indicator ${
+            micPermission === 'granted' ? 'status-success' : 
+            micPermission === 'checking' ? 'status-warning' : 'status-error'
+          }`}>
+            <span className="text-sm font-medium" aria-hidden="true">
+              {micPermission === 'granted' ? '✓' : 
+               micPermission === 'checking' ? '⏳' : '⚠️'}
+            </span>
+            <span className="text-sm font-medium">
+              {micPermission === 'granted' ? 'Microphone Ready' : 
+               micPermission === 'checking' ? 'Checking Microphone...' : 'Microphone Access Needed'}
+            </span>
+          </div>
+          <div className="status-indicator status-info">
+            <span className="text-sm font-medium" aria-hidden="true">⏱️</span>
+            <span className="text-sm font-medium">3-5 min session</span>
+          </div>
+          <div className="status-indicator status-neutral">
+            <span className="text-sm font-medium" aria-hidden="true">🌐</span>
+            <span className="text-sm font-medium">English (US)</span>
           </div>
         </div>
+      </header>
 
-        {/* Main Record Button */}
-        <div className="flex justify-center">
-          <div className="bg-white/95 backdrop-blur-lg border border-neutral-200 rounded-3xl p-6 shadow-lg">
+      {/* Two-Card Layout */}
+      <section id="recording-cards" className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" aria-labelledby="recording-options-heading">
+        <h2 id="recording-options-heading" className="sr-only">Recording Options</h2>
+        
+        {/* Card 1: Record */}
+        <article className="bg-white rounded-2xl border border-neutral-200 p-8 text-center shadow-lg hover:shadow-xl transition-shadow" aria-labelledby="record-card-heading" role="region">
+          <h3 id="record-card-heading" className="sr-only">Record Audio</h3>
+          <div className="mb-6">
+            <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-4 transition-all duration-200 ${
+              recordingState === 'recording' ? 'bg-red-100 animate-pulse' :
+              recordingState === 'processing' ? 'bg-amber-100' :
+              micPermission !== 'granted' ? 'bg-neutral-200' :
+              'bg-accent-100 hover:bg-accent-200'
+            }`}>
+              {recordingState === 'recording' ? '🔴' :
+               recordingState === 'processing' ? '⏳' : '🎤'}
+            </div>
+            <h3 className="text-xl font-semibold text-neutral-900 mb-2">
+              {recordingState === 'recording' ? 'Recording...' :
+               recordingState === 'processing' ? 'Processing...' : 'Start Recording'}
+            </h3>
+            <p className="text-neutral-600">
+              {recordingState === 'recording' ? `Recording time: ${formatTime(recordingTime)}` :
+               recordingState === 'processing' ? 'Transcribing with Whisper AI' :
+               micPermission !== 'granted' ? 'Enable microphone to start' :
+               'Record yourself speaking or press spacebar'}
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            {recordingState === 'idle' && micPermission === 'granted' && (
+              <button
+                onClick={startRecording}
+                className="w-full bg-accent-500 hover:bg-accent-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                aria-label="Start recording your speech"
+                type="button"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <span aria-hidden="true">🎤</span>
+                  Start Recording
+                </span>
+              </button>
+            )}
+            {recordingState === 'recording' && (
+              <button
+                onClick={stopRecording}
+                className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                aria-label="Stop recording your speech"
+                type="button"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <span aria-hidden="true">⏹️</span>
+                  Stop Recording
+                </span>
+              </button>
+            )}
+            {micPermission !== 'granted' && recordingState === 'idle' && (
+              <button
+                onClick={startRecording}
+                className="w-full bg-neutral-300 text-neutral-600 font-semibold py-3 px-6 rounded-xl cursor-not-allowed"
+                disabled
+                aria-label={micPermission === 'checking' ? 'Checking microphone permissions' : 'Grant microphone access to enable recording'}
+                type="button"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <span aria-hidden="true">
+                    {micPermission === 'checking' ? '⏳' : '🎤'}
+                  </span>
+                  {micPermission === 'checking' ? 'Checking Microphone...' : 'Grant Microphone Access'}
+                </span>
+              </button>
+            )}
+            <p className="text-sm text-neutral-600 font-medium">
+              Press spacebar to quickly start recording
+            </p>
+          </div>
+        </article>
+
+        {/* Card 2: Upload */}
+        <article className="bg-white rounded-2xl border border-neutral-200 p-8 text-center shadow-lg hover:shadow-xl transition-shadow" aria-labelledby="upload-card-heading" role="region">
+          <h3 id="upload-card-heading" className="sr-only">Upload Audio File</h3>
+          <div className="mb-6">
+            <div className="w-20 h-20 mx-auto bg-blue-100 rounded-full flex items-center justify-center text-4xl mb-4 hover:bg-blue-200 transition-colors">
+              📁
+            </div>
+            <h3 className="text-xl font-semibold text-neutral-900 mb-2">Upload Audio</h3>
+            <p className="text-neutral-600">
+              Already have an audio file? Upload it for instant analysis
+            </p>
+          </div>
+          
+          <div className="space-y-3">
             <input
               ref={fileInputRef}
               type="file"
               accept="audio/*"
               onChange={handleFileChange}
               className="hidden"
+              aria-label="Choose audio file for upload"
+              tabIndex={-1}
             />
-            
-            <div className="text-center space-y-4">
-              <button
-                onClick={handleFileUpload}
-                disabled={recordingState === 'processing' || micPermission !== 'granted'}
-                className={`w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 transform hover:scale-105 focus:scale-105 focus:outline-none focus:ring-4 focus:ring-accent-200 ${
-                  recordingState === 'processing' || micPermission !== 'granted'
-                    ? 'bg-neutral-300 cursor-not-allowed' 
-                    : 'bg-accent-500 hover:bg-accent-600 active:scale-95'
-                }`}
-              >
-                <span className="text-white text-3xl md:text-4xl">
-                  {recordingState === 'processing' ? '⏳' : '🎤'}
-                </span>
-              </button>
-              
-              <div className="space-y-2">
-                <p className="text-neutral-900 font-semibold text-lg">
-                  {recordingState === 'processing' ? 'Processing...' : 
-                   micPermission !== 'granted' ? 'Enable microphone to start' : 'Ready to practice?'}
-                </p>
-                <p className="text-sm text-neutral-600">
-                  {recordingState === 'processing' 
-                    ? 'Please wait while we process your speech' 
-                    : micPermission !== 'granted' 
-                      ? 'Click to grant microphone permission'
-                      : 'Tap to start or press spacebar'
-                  }
-                </p>
-                {recordingState === 'recording' && (
-                  <div className="text-sm text-accent-600 font-medium">
-                    Recording: {formatTime(recordingTime)}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Recording Panel */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Header */}
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-neutral-900 mb-3 font-display">
-              Daily Speaking Practice 🎤
-            </h1>
-            <p className="text-lg text-neutral-600">
-              Hello {userName}! Practice for 3-5 minutes and get personalized feedback
-            </p>
-          </div>
-
-        {/* Progress Indicator */}
-        <div className="card-solid bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${
-                recordingState === 'recording' ? 'bg-red-100 animate-pulse' :
-                recordingState === 'processing' ? 'bg-amber-100' :
-                'bg-primary-100'
-              }`}>
-                {getStateIcon()}
-              </div>
-              <div>
-                <div className="font-medium text-neutral-900">{getStateMessage()}</div>
-                {recordingState === 'recording' && (
-                  <div className="text-sm text-neutral-600">Duration: {formatTime(recordingTime)}</div>
-                )}
-              </div>
-            </div>
-            {recordingState === 'processing' && (
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-accent-500 rounded-full animate-pulse animation-delay-200"></div>
-                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse animation-delay-400"></div>
-              </div>
-            )}
-          </div>
-          
-          {/* Progress bar for processing */}
-          {recordingState === 'processing' && (
-            <div className="w-full bg-neutral-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-primary-400 to-accent-500 h-2 rounded-full animate-pulse-progress"></div>
-            </div>
-          )}
-        </div>
-
-        {/* Current Prompt */}
-        <div className="card">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center">
-                <span className="text-xl">💭</span>
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-neutral-900">Today's Prompt</h2>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className={`badge text-xs ${getDifficultyColor(selectedPrompt.difficulty)}`}>
-                    {selectedPrompt.difficulty}
-                  </span>
-                  <span className="badge-neutral text-xs">{selectedPrompt.category}</span>
-                </div>
-              </div>
-            </div>
             <button
-              onClick={() => setShowPromptSelector(!showPromptSelector)}
-              className="btn-secondary !py-2 !px-3 text-sm"
+              onClick={() => fileInputRef.current?.click()}
               disabled={recordingState === 'processing'}
+              className={`w-full font-semibold py-3 px-6 rounded-xl transition-colors ${
+                recordingState === 'processing' 
+                  ? 'bg-neutral-300 text-neutral-600 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+              }`}
+              aria-label="Choose an audio file to upload for analysis"
+              type="button"
             >
-              Change Prompt
+              <span className="flex items-center justify-center gap-2">
+                <span aria-hidden="true">📁</span>
+                Choose Audio File
+              </span>
             </button>
+            <p className="text-sm text-neutral-600 font-medium">
+              Supports MP3, WAV, M4A, and other audio formats
+            </p>
           </div>
-          
-          <p className="text-neutral-900 text-lg leading-relaxed">{selectedPrompt.text}</p>
-        </div>
+        </article>
+      </section>
 
-        {/* Prompt Selector Dropdown */}
-        {showPromptSelector && (
-          <div className="card border-2 border-primary-200">
-            <h3 className="font-semibold text-neutral-900 mb-4">Choose a Different Prompt</h3>
-            <div className="grid gap-3 max-h-64 overflow-y-auto">
-              {PRACTICE_PROMPTS.map((prompt) => (
-                <button
-                  key={prompt.id}
-                  onClick={() => handlePromptSelect(prompt)}
-                  className={`text-left p-3 rounded-lg border transition-all hover:shadow-sm ${
-                    prompt.id === selectedPrompt.id 
-                      ? 'bg-primary-50 border-primary-200' 
-                      : 'bg-white border-neutral-200 hover:border-primary-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`badge text-xs ${getDifficultyColor(prompt.difficulty)}`}>
-                      {prompt.difficulty}
-                    </span>
-                    <span className="badge-neutral text-xs">{prompt.category}</span>
-                  </div>
-                  <p className="text-sm text-neutral-900">{prompt.text}</p>
-                </button>
-              ))}
+      {/* Processing State */}
+      {recordingState === 'processing' && (
+        <div className="bg-amber-50 rounded-xl border border-amber-200 p-6 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <div>
+              <h4 className="font-semibold text-amber-900">Processing your audio...</h4>
+              <p className="text-sm text-amber-700">Using Whisper AI to transcribe and analyze your speech</p>
             </div>
           </div>
-        )}
-
-        {/* Unified Tips Section */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
-            <span>💡</span>
-            Practice Guide
-          </h3>
-          
-          {/* Prompt-specific tips */}
-          <div className="bg-accent-50 rounded-lg p-4 border border-accent-200 mb-4">
-            <h4 className="font-medium text-neutral-900 mb-3 flex items-center gap-2">
-              <span>🎯</span>
-              For this prompt:
-            </h4>
-            <ul className="space-y-2 text-sm text-neutral-700">
-              {selectedPrompt.tips.map((tip, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span className="text-accent-500 mt-1">•</span>
-                  <span>{tip}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="w-full bg-amber-200 rounded-full h-2 mt-4">
+            <div className="bg-amber-500 h-2 rounded-full animate-pulse-progress"></div>
           </div>
-
-          {/* General recording tips */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-            <h4 className="font-medium text-neutral-900 mb-3 flex items-center gap-2">
-              <span>🎙️</span>
-              Recording tips:
-            </h4>
-            <ul className="space-y-2 text-sm text-neutral-700">
-              {CONTEXTUAL_TIPS.recording.slice(0, 2).map((tip, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  <span>{tip}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {recordingState === 'idle' && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={handleFileUpload}
-                className="btn-secondary !py-2 !px-4 text-sm"
-              >
-                📎 Upload Audio File Instead
-              </button>
-            </div>
-          )}
         </div>
+      )}
 
-        {/* Error State */}
-        {error && (
-          <div className="card bg-red-50 border-red-200">
-            <div className="flex gap-3">
-              <span className="text-red-600 text-xl">⚠️</span>
-              <div>
-                <h3 className="font-semibold text-red-600 mb-1">Something went wrong</h3>
-                <p className="text-sm text-neutral-600 mb-3">{error}</p>
-                <button 
-                  onClick={() => setRecordingState('idle')}
-                  className="btn-secondary !py-2 !px-3 text-sm"
-                >
-                  Try Again
-                </button>
+      {/* Current Prompt */}
+      <section className="bg-white rounded-xl border border-neutral-200 p-6 mb-8" aria-labelledby="current-prompt-heading">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center" aria-hidden="true">
+              <span className="text-lg">💭</span>
+            </div>
+            <div>
+              <h3 id="current-prompt-heading" className="font-semibold text-neutral-900">Today's Practice Prompt</h3>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`badge ${getDifficultyColor(selectedPrompt.difficulty)}`} role="status" aria-label={`Difficulty level: ${selectedPrompt.difficulty}`}>
+                  {selectedPrompt.difficulty}
+                </span>
+                <span className="badge-neutral" role="status" aria-label={`Category: ${selectedPrompt.category}`}>{selectedPrompt.category}</span>
               </div>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Session Info Sidebar */}
-      <div className="space-y-6">
-        {/* Session Progress */}
-        <div className="card-solid bg-gradient-to-br from-primary-50 to-accent-50 border border-primary-200">
-          <h4 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
-            <span>📈</span>
-            Today's Progress
+          <button
+            onClick={() => setShowPromptSelector(!showPromptSelector)}
+            className="btn-secondary !py-2 !px-3"
+            disabled={recordingState === 'processing'}
+            aria-label={showPromptSelector ? 'Hide prompt selector' : 'Show prompt selector to change practice prompt'}
+            aria-expanded={showPromptSelector}
+            type="button"
+          >
+            <span className="flex items-center gap-2">
+              <span aria-hidden="true">{showPromptSelector ? '▲' : '▼'}</span>
+              Change
+            </span>
+          </button>
+        </div>
+        
+        <p className="text-neutral-900 text-lg leading-relaxed mb-4" role="article" aria-label="Practice prompt">{selectedPrompt.text}</p>
+        
+        {/* Tips */}
+        <aside className="bg-accent-50 rounded-lg p-4 border border-accent-200" aria-labelledby="tips-heading">
+          <h4 id="tips-heading" className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+            <span aria-hidden="true">💡</span>
+            Tips for this prompt:
           </h4>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-neutral-600">Practice sessions</span>
-              <span className="text-sm font-medium text-neutral-900">2 / 3</span>
-            </div>
-            <div className="w-full bg-neutral-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-primary-400 to-accent-500 h-2 rounded-full transition-all duration-500" style={{ width: '67%' }}></div>
-            </div>
-            <p className="text-xs text-neutral-600 text-center">1 more session to reach your daily goal!</p>
-          </div>
-        </div>
+          <ul className="space-y-2 text-base text-neutral-700" role="list">
+            {selectedPrompt.tips.slice(0, 2).map((tip, idx) => (
+              <li key={idx} className="flex items-start gap-3" role="listitem">
+                <span className="text-accent-600 font-bold mt-1" aria-hidden="true">•</span>
+                <span className="leading-relaxed">{tip}</span>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      </section>
 
-        {/* Quick Encouragement */}
-        <div className="card-solid bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200">
-          <div className="text-center">
-            <div className="text-2xl mb-2">🌟</div>
-            <h4 className="font-semibold text-neutral-900 mb-2">Keep it up!</h4>
-            <p className="text-sm text-neutral-600">
-              Every practice session builds your confidence. You're making great progress!
-            </p>
+      {/* Prompt Selector */}
+      {showPromptSelector && (
+        <section className="bg-white rounded-xl border border-neutral-200 p-6 mb-8" aria-labelledby="prompt-selector-heading" role="region">
+          <h3 id="prompt-selector-heading" className="font-semibold text-neutral-900 mb-4">Choose a Different Prompt</h3>
+          <div className="grid gap-3 max-h-64 overflow-y-auto" role="list" aria-label="Available practice prompts">
+            {PRACTICE_PROMPTS.map((prompt) => (
+              <button
+                key={prompt.id}
+                onClick={() => handlePromptSelect(prompt)}
+                className={`text-left p-4 rounded-lg border transition-all hover:shadow-sm ${
+                  prompt.id === selectedPrompt.id 
+                    ? 'bg-accent-50 border-accent-200' 
+                    : 'bg-white border-neutral-200 hover:border-accent-200'
+                }`}
+                role="listitem"
+                aria-selected={prompt.id === selectedPrompt.id}
+                aria-label={`Select ${prompt.category} prompt: ${prompt.text.slice(0, 50)}...`}
+                type="button"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`badge ${getDifficultyColor(prompt.difficulty)}`} aria-label={`Difficulty: ${prompt.difficulty}`}>
+                    {prompt.difficulty}
+                  </span>
+                  <span className="badge-neutral" aria-label={`Category: ${prompt.category}`}>{prompt.category}</span>
+                </div>
+                <p className="text-base text-neutral-900 leading-relaxed">{prompt.text}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 rounded-xl border border-red-200 p-6">
+          <div className="flex gap-3">
+            <span className="text-red-600 text-xl">⚠️</span>
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-900 mb-1">Something went wrong</h3>
+              <p className="text-sm text-red-700 mb-3">{error}</p>
+              <button 
+                onClick={() => setRecordingState('idle')}
+                className="btn-secondary !py-2 !px-3 text-sm"
+              >
+                Try Again
+              </button>
+            </div>
           </div>
         </div>
-        </div>
-      </div>
-    </div>
+      )}
+    </main>
   );
 }
