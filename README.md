@@ -4,14 +4,14 @@
 
 A modern web application that helps users improve their English speaking skills through daily practice sessions, AI-powered grammar analysis, and gamified progress tracking.
 
-## ✨ Features
+## Features
 
 - **Speech Analysis** - Record yourself and get instant grammar feedback
 - **Daily Practice** - Curated prompts for consistent learning
 - **Progress Tracking** - XP system, streaks, and detailed analytics
 - **Smooth Animations** - Modern, engaging user interface
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Install dependencies**
    ```bash
@@ -61,7 +61,7 @@ Visit `http://localhost:3000` to start practicing!
 - **[Architecture Guide](docs/architecture.md)** - System design and patterns
 - **[Contributing Guide](docs/contributing.md)** - Development workflow
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch: `git checkout -b feature/amazing-feature`
@@ -70,7 +70,7 @@ Visit `http://localhost:3000` to start practicing!
 5. Push: `git push origin feature/amazing-feature`
 6. Open a Pull Request
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
