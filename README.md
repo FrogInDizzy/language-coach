@@ -36,14 +36,14 @@ A modern web application that helps users improve their English speaking skills 
 
 Visit `http://localhost:3000` to start practicing!
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL, Auth, Storage)
 - **AI**: OpenAI (Whisper, GPT-4)
 - **Animations**: Framer Motion
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── app/                 # Next.js pages and API routes
@@ -54,7 +54,7 @@ Visit `http://localhost:3000` to start practicing!
 └── docs/               # Technical documentation
 ```
 
-## 📖 Documentation
+## Documentation
 
 - **[Getting Started Guide](docs/getting-started.md)** - Detailed setup instructions
 - **[API Documentation](docs/api.md)** - Complete API reference
